@@ -1,13 +1,36 @@
 .wrapper {
-  @apply relative overflow-hidden h-auto
-    before:absolute before:top-0 before:start-1/2
-    before:-z-[1] before:transform before:-translate-x-1/2
-    before:bg-no-repeat before:bg-top
-    before:w-full before:h-full before:bg-[length:1300px] lg:before:bg-[length:100dvw]
-    before:bg-[url('https://preline.co/assets/svg/examples/polygon-bg-element.svg')]
+  @apply relative overflow-hidden min-h-screen bg-gradient-to-b from-white to-gray-50;
+  background-image: radial-gradient(circle at 50% 50%, rgba(119, 74, 103, 0.05) 0%, rgba(119, 74, 103, 0.02) 50%, transparent 100%);
+}
 
-    dark:bg-[center_top_-2rem] dark:bg-[length:1300px] lg:dark:bg-[length:100dvw] dark:bg-no-repeat
-    dark:bg-[url('https://preline.co/assets/svg/examples-dark/polygon-bg-element.svg')];
+.wrapper::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(119, 74, 103, 0.05) 0%, rgba(119, 74, 103, 0.02) 100%);
+  clip-path: polygon(70% 0, 100% 0, 100% 100%, 30% 100%);
+  z-index: 0;
+}
+
+.wrapper::after {
+  content: '';
+  position: absolute;
+  top: 20%;
+  right: 0;
+  width: 50%;
+  height: 60%;
+  background: radial-gradient(circle at center, rgba(119, 74, 103, 0.08) 0%, transparent 70%);
+  z-index: 0;
+}
+
+@media (max-width: 640px) {
+  .wrapper::before,
+  .wrapper::after {
+    display: none;
+  }
 }
 
 .pro-release-wrapper {
@@ -22,6 +45,29 @@
   hover:from-violet-600 hover:to-blue-600 
   border border-transparent text-white text-sm font-medium rounded-md 
   focus:outline-none focus:ring-1 focus:ring-gray-600 py-3 px-4 dark:focus:ring-offset-gray-800;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.get-started-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    120deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: all 0.5s ease;
+}
+
+.get-started-btn:hover::before {
+  left: 100%;
 }
 
 .yarn-add-wrapper {

@@ -11,6 +11,8 @@ type ROOT_DATA = {
   confirmPayment: boolean;
   man: DecodedJwt | null;
   tk: string;
+  isModulesOpen: boolean;
+  isIndustriesOpen: boolean;
 };
 // final changes
 const INIT_DATA: ROOT_DATA = {
@@ -22,6 +24,8 @@ const INIT_DATA: ROOT_DATA = {
   confirmPayment: false,
   man: null,
   tk: "",
+  isModulesOpen: false,
+  isIndustriesOpen: false,
 };
 
 interface rootStore {
@@ -33,6 +37,8 @@ interface rootStore {
   confirmPayment: () => void;
   handleClientLogin: (accessToken: string) => void;
   handleClientLogout: () => void;
+  toggleModules: () => void;
+  toggleIndustries: () => void;
 }
 
 // 🧩 Full fallback guest JWT for type compatibility
@@ -122,4 +128,14 @@ export const rootStore = create<rootStore>((set) => ({
     localStorage.removeItem("man");
     return set(() => ({ data: INIT_DATA }));
   },
+
+  toggleModules: () =>
+    set((state) => ({
+      data: { ...state.data, isModulesOpen: !state.data.isModulesOpen },
+    })),
+
+  toggleIndustries: () =>
+    set((state) => ({
+      data: { ...state.data, isIndustriesOpen: !state.data.isIndustriesOpen },
+    })),
 }));

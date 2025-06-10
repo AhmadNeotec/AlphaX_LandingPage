@@ -28,3 +28,56 @@
 .social-icon {
   @apply inline-block text-gray-500 hover:text-gray-800 dark:hover:text-gray-200;
 }
+
+.footer-bg-effect {
+  @apply relative overflow-hidden;
+  background: linear-gradient(135deg, #774A67 0%, #8b5cf6 60%, #774A67 100%);
+}
+
+/* Remove the previous blob effects since we're using a solid gradient now */
+.footer-bg-effect::before,
+.footer-bg-effect::after {
+  display: none;
+}
+
+/* Ensure content stays above the background */
+.footer-content {
+  @apply relative z-10;
+}
+
+.footer-glass {
+  @apply backdrop-blur-md bg-opacity-90 shadow-2xl;
+  box-shadow: 0 8px 32px 0 rgba(119, 74, 103, 0.25), 0 1.5px 8px 0 rgba(119, 74, 103, 0.10);
+  border: 1.5px solid rgba(119, 74, 103, 0.18);
+}
+
+.footer-items, .footer-content, .footer-content a, .footer-content p, .footer-content h4, .footer-content span {
+  color: #ffffff !important;
+}
+
+.dark .footer-items, .dark .footer-content, .dark .footer-content a, .dark .footer-content p, .dark .footer-content h4, .dark .footer-content span {
+  color: #ffffff !important;
+}
+
+.social-icon-bg {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #774A67 0%, #8b5cf6 100%);
+  box-shadow: 0 4px 24px 0 rgba(139, 92, 246, 0.18), 0 1.5px 8px 0 rgba(119, 74, 103, 0.18);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.social-icon-bg svg {
+  color: #fff;
+  width: 2rem;
+  height: 2rem;
+}
+
+.social-icon:hover .social-icon-bg {
+  transform: scale(1.15) translateY(-2px);
+  box-shadow: 0 0 16px 4px #8b5cf6, 0 2px 12px 0 #774A67;
+}

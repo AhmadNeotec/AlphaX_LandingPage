@@ -22,6 +22,23 @@ export default defineConfig({
   },
   server: {
     port: 2222,
+    hmr: {
+      overlay: false
+    },
+    host: true,
+    allowedHosts: [
+      'neotechis.com',
+      'www.neotechis.com',
+      'localhost',
+      '127.0.0.1'
+    ],
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, '/api'),
+      },
+    }
   },
   preview: {
     port: 2222,
@@ -43,6 +60,9 @@ export default defineConfig({
     cssCodeSplit: true,
     emptyOutDir: true,
     rollupOptions: {
+      input: {
+        main: path.resolve(__dirname, 'index.html'),
+      },
       output: {
         manualChunks(id: string) {
           if (id.includes("clsx")) {
@@ -98,5 +118,8 @@ export default defineConfig({
         },
       },
     },
+  },
+  optimizeDeps: {
+    exclude: ['.git'],
   },
 });

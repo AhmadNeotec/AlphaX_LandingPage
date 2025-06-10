@@ -1,10 +1,11 @@
 import { ENDPOINTS, fetcher } from '@api/useAxiosSWR';
 import { rootStore } from '@store/index';
-import { cn } from '@utils/index';
+//import { cn } from '@utils/index';
 import { enqueueSnackbar } from 'notistack';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { RegisterTrialResponse } from 'types/auth.request';
+import { FaBuilding, FaUtensils, FaPlane, FaShoppingCart, FaBalanceScale, FaLaptopCode, FaIndustry, FaHandsHelping, FaGraduationCap, FaHome, FaTools } from 'react-icons/fa';
 
 const TickMark = () => (
   <svg
@@ -61,6 +62,7 @@ const Pricing = ({ isInModal, isExpiredPlan }: Props) => {
   const toggleConfigSite = rootStore(({ toggleConfigSite }) => toggleConfigSite);
 
   const [showPopup, setShowPopup] = useState(false);
+  const [isYearly, setIsYearly] = useState(false);
 
   const mainTitle = isInModal ? 'Choose your plan' : 'Pricing';
   const cta = isInModal ? 'I Want This' : 'Sign In';
@@ -104,19 +106,19 @@ const Pricing = ({ isInModal, isExpiredPlan }: Props) => {
     {
       title: "Basic",
       price: "300",
-      currency: "SAR",
+      currency: "/src/images/Saudi_Riyal_Symbol.png",
       features: ["Accounting", "Inventory", "Number of Users: 1"],
     },
     {
       title: "Standard",
       price: "400",
-      currency: "SAR",
+      currency: "/src/images/Saudi_Riyal_Symbol.png",
       features: ["Accounting", "Inventory", "HR with 5 Employees", "Number of Users: 3"],
     },
     {
       title: "Premium",
       price: "500",
-      currency: "SAR",
+      currency: "/src/images/Saudi_Riyal_Symbol.png",
       features: [
         "Accounting",
         "Inventory",
@@ -128,7 +130,7 @@ const Pricing = ({ isInModal, isExpiredPlan }: Props) => {
     {
       title: "Platinum",
       price: "600",
-      currency: "SAR",
+      currency: "/src/images/Saudi_Riyal_Symbol.png",
       features: [
         "Accounting",
         "Inventory",
@@ -140,18 +142,47 @@ const Pricing = ({ isInModal, isExpiredPlan }: Props) => {
     },
   ];
 
+  const calculatePrice = (price: string) => {
+    const basePrice = parseInt(price);
+    return isYearly ? (basePrice * 12 * 0.9).toFixed(0) : price; // 10% discount for yearly
+  };
+
   return (
     <div className='max-w-[80rem] px-4 py-10 sm:px-6 lg:px-8 lg:py-14 mx-auto max-h-[620px] lg:max-h-max overflow-y-auto no-scrollbar' id='pricing'>
       <div className='max-w-2xl mx-auto text-center mb-10 lg:mb-14'>
-        {isExpiredPlan ? (
-          <p className='mt-1 text-red-600 dark:text-red-400'>
-            * Your trial has eneded, please kindly upgrade to continue
-          </p>
-        ) : (
-          <p className='mt-1 text-gray-600 dark:text-gray-400'>
-            Whatever your status, our offers evolve according to your needs.
-          </p>
-        )}
+        <h2 className='text-5xl font-bold md:text-5xl md:leading-tight dark:text-white neon-glow'>
+          {mainTitle}
+        </h2>
+        <p className='mt-1 text-gray-600 dark:text-gray-400'>
+          Whatever your status, our offers evolve according to your needs.
+        </p>
+        
+        {/* Billing Period Toggle */}
+        <div className="mt-6 flex flex-col items-center">
+          <div className="flex items-center gap-4">
+            <span className={`text-base font-medium ${!isYearly ? 'text-[#774A67] dark:text-[#774A67]' : 'text-gray-500'}`}>
+              Monthly
+            </span>
+            <button
+              type="button"
+              className="relative w-12 h-6 rounded-full bg-gray-200 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#774A67] focus:ring-offset-2 shadow-md hover:shadow-lg active:shadow-inner"
+              onClick={() => setIsYearly(!isYearly)}
+            >
+              <span className="sr-only">Toggle billing period</span>
+              <div className={`absolute top-1 left-1 w-4 h-4 rounded-full transition-all duration-200 shadow-sm ${
+                isYearly ? 'translate-x-6 bg-[#774A67]' : 'translate-x-0 bg-white'
+              }`} />
+            </button>
+            <span className={`text-base font-medium ${isYearly ? 'text-[#774A67] dark:text-[#774A67]' : 'text-gray-500'}`}>
+              Yearly
+            </span>
+          </div>
+          {isYearly && (
+            <span className="mt-2 text-base font-medium text-green-600 dark:text-green-400">
+             2 Months Free
+            </span>
+          )}
+        </div>
       </div>
 
       <div className='mt-12 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6'>
@@ -166,10 +197,15 @@ const Pricing = ({ isInModal, isExpiredPlan }: Props) => {
             <h4 className='font-semibold text-3xl text-gray-800 dark:text-gray-200'>
               {plan.title}
             </h4>
-            <span className='mt-3 font-bold text-6xl text-gray-800 dark:text-yellow-400'>
-              <span className='text-sm font-medium text-gray-500 dark:text-gray-400'>{plan.currency}</span> {plan.price}
-              <span className='text-sm'>/month</span>
-            </span>
+            <div className="mt-3 flex items-center justify-center gap-2">
+              <img src={plan.currency} alt="currency" className="h-5 w-5 object-contain" />
+              <span className="font-bold text-6xl text-gray-800 dark:text-yellow-400">
+                {calculatePrice(plan.price)}
+              </span>
+              <span className="text-base font-medium text-gray-500 dark:text-gray-400">
+                /{isYearly ? 'year' : 'month'}
+              </span>
+            </div>
             <ul className='mt-5 space-y-2.5 text-sm'>
               {plan.features.map((feature, i) => (
                 <li key={i} className='flex space-x-2'>
@@ -235,184 +271,40 @@ const Pricing = ({ isInModal, isExpiredPlan }: Props) => {
         </div>
       )}
 
-      {/*  */}
-      {/* Test */}
-      {/* <div
-      className='max-w-[90rem] px-4 py-10 sm:px-6 lg:px-8 lg:py-14 mx-auto max-h-[620px] lg:max-h-max overflow-y-auto no-scrollbar'
-      id='pricing'
-    >
-      <div className='max-w-2xl mx-auto text-center mb-10 lg:mb-14'>
-        <h2 className='text-5xl font-bold md:text-5xl md:leading-tight dark:text-white'>
-          {mainTitle}
-        </h2>
-      </div>
-
-      <div className='mt-12 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6'>
-        {plans.map((plan, index) => (
-          <div key={index} className='flex flex-col border border-gray-200 text-center rounded-xl p-8 dark:border-gray-700'>
-            <h4 className='font-semibold text-xl text-gray-800 dark:text-gray-200'>
-              {plan.title}
-            </h4>
-            <span className='mt-3 font-bold text-5xl text-gray-800 dark:text-yellow-400'>
-              <span className='text-lg font-medium'>{plan.currency}</span> {plan.price}
-              <span className='text-sm'>/month</span>
-            </span>
-            <ul className='mt-5 space-y-2.5 text-sm'>
-              {plan.features.map((feature, i) => (
-                <li key={i} className='flex space-x-2'>
-                  <TickMark />
-                  <span className='text-gray-800 dark:text-gray-400'>{feature}</span>
-                </li>
-              ))}
-            </ul>
-            <div className='mt-6'>
-              <a
-                className='py-3 px-5 text-sm font-semibold rounded-lg border border-transparent bg-violet-600 text-white hover:bg-violet-700 transition-all dark:hover:bg-violet-800 w-full block'
-                href=''
-              >
-                {cta}
-              </a>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div> */}
-      {/* test end */}
-      {/* <div className={cn('mt-12 grid grid-cols-1 md:grid-cols-2 gap-6 lg:items-center', { "md:grid-cols-1": isExpiredPlan })}>
-        {!isExpiredPlan && (
-          <div className='flex flex-col border border-gray-200 text-center rounded-xl p-8 dark:border-gray-700'>
-            <h4 className='font-medium text-lg text-gray-800 dark:text-gray-200'>
-              Free
-            </h4>
-            <span className='mt-7 font-bold text-5xl text-gray-800 dark:text-yellow-400'>
-              Free
-            </span>
-            <p className='mt-2 text-sm text-gray-500'>Trial up to 14 days</p>
-
-            <ul className='mt-7 space-y-2.5 text-sm'>
-              <li className='flex space-x-2'>
-                <TickMark />
-                <span className='text-gray-800 dark:text-gray-400'>1 user</span>
-              </li>
-
-              <li className='flex space-x-2'>
-                <TickMark />
-                <span className='text-gray-800 dark:text-gray-400'>
-                  Plan features
-                </span>
-              </li>
-
-              <li className='flex space-x-2'>
-                <TickMark />
-                <span className='text-gray-800 dark:text-gray-400'>
-                  Normal Product support
-                </span>
-              </li>
-            </ul>
-
-            <a
-              className='mt-5 py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-semibold rounded-lg 
-            border border-transparent bg-violet-100/60 text-violet-800/60 hover:bg-violet-200/60 
-            disabled:opacity-50 disabled:pointer-events-none 
-            dark:hover:bg-violet-800/60 dark:text-[#203030] dark:hover:text-white
-            dark:focus:outline-none dark:focus:ring-1 dark:focus:ring-gray-600'
-              href=''
-              onClick={handleFreeClicked}
-            >
-              {cta}
-            </a>
-          </div>
-        )}
-
-        <div className='flex flex-col border-2 border-violet-600/60 text-center shadow-xl rounded-xl p-8 dark:border-violet-700/60'>
-          <p className='mb-3'>
-            <span className='inline-flex items-center gap-1.5 py-1.5 px-3 rounded-lg text-xs uppercase font-semibold bg-violet-100/60 text-violet-800/60 dark:bg-violet-600/60 dark:text-white'>
-              Most popular
-            </span>
-          </p>
-          <h4 className='font-medium text-lg text-gray-800 dark:text-gray-200'>
-            Premium
-          </h4>
-          <span className='mt-5 font-bold text-5xl text-gray-800 dark:text-yellow-400'>
-            <span className='font-bold text-2xl -my-2'>$</span>
-            1.00
-          </span>
-          <p className='mt-2 text-sm text-gray-500'>
-            All the basics for starting a new business
-          </p>
-
-          <ul className='mt-7 space-y-2.5 text-sm'>
-            <li className='flex space-x-2'>
-              <svg
-                className='flex-shrink-0 mt-0.5 h-4 w-4 text-violet-600/60 dark:text-violet-500/60'
-                xmlns='http://www.w3.org/2000/svg'
-                width='24'
-                height='24'
-                viewBox='0 0 24 24'
-                fill='none'
-                stroke='currentColor'
-                strokeWidth='2'
-                strokeLinecap='round'
-                strokeLinejoin='round'
-              >
-                <polyline points='20 6 9 17 4 12' />
-              </svg>
-              <span className='text-gray-800 dark:text-gray-400'>
-                Unlimited users
-              </span>
-            </li>
-
-            <li className='flex space-x-2'>
-              <svg
-                className='flex-shrink-0 mt-0.5 h-4 w-4 text-violet-600/60 dark:text-violet-500/60'
-                xmlns='http://www.w3.org/2000/svg'
-                width='24'
-                height='24'
-                viewBox='0 0 24 24'
-                fill='none'
-                stroke='currentColor'
-                strokeWidth='2'
-                strokeLinecap='round'
-                strokeLinejoin='round'
-              >
-                <polyline points='20 6 9 17 4 12' />
-              </svg>
-              <span className='text-gray-800 dark:text-gray-400'>
-                All exclusive features
-              </span>
-            </li>
-
-            <li className='flex space-x-2'>
-              <svg
-                className='flex-shrink-0 mt-0.5 h-4 w-4 text-violet-600/60 dark:text-violet-500/60'
-                xmlns='http://www.w3.org/2000/svg'
-                width='24'
-                height='24'
-                viewBox='0 0 24 24'
-                fill='none'
-                stroke='currentColor'
-                strokeWidth='2'
-                strokeLinecap='round'
-                strokeLinejoin='round'
-              >
-                <polyline points='20 6 9 17 4 12' />
-              </svg>
-              <span className='text-gray-800 dark:text-gray-400'>
-                Fast Product support
-              </span>
-            </li>
-          </ul>
-
-          <a
-            className='mt-5 py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-semibold 
-            rounded-lg border border-transparent bg-violet-600/60 text-white hover:bg-violet-700/60 disabled:opacity-50 disabled:pointer-events-none dark:focus:outline-none dark:focus:ring-1 dark:focus:ring-gray-600'
-            href=''
-            onClick={handlePremiumClicked}
-          >
-            {cta}
-          </a>
+      {/* Sectors Section */}
+      <section className="mt-20 mb-10">
+        <div className="max-w-2xl mx-auto text-center mb-8">
+          <span className="text-lg md:text-3xl font-semibold text-[#774A67] dark:text-[#774A67] tracking-widest uppercase">Sectors</span>
+          <h2 className="mt-2 text-3xl md:text-5xl font-bold text-gray-900 dark:text-white">Catering to businesses in all sectors</h2>
+          <p className="mt-2 text-gray-600 dark:text-gray-400 text-base">We understand the unique financial challenges faced by businesses in various sectors and design our solutions accordingly.</p>
         </div>
-      </div> */}
+        <div className="flex flex-wrap justify-center gap-4 max-w-4xl mx-auto">
+          {[
+            { label: 'Constructions & Real Estate', icon: <FaBuilding className="w-5 h-5 drop-shadow-lg" /> },
+            { label: 'Food & Beverage', icon: <FaUtensils className="w-5 h-5 drop-shadow-lg" /> },
+            { label: 'Tourism and Travel', icon: <FaPlane className="w-5 h-5 drop-shadow-lg" /> },
+            { label: 'Retail', icon: <FaShoppingCart className="w-5 h-5 drop-shadow-lg" /> },
+            { label: 'Legal', icon: <FaBalanceScale className="w-5 h-5 drop-shadow-lg" /> },
+            { label: 'Technology', icon: <FaLaptopCode className="w-5 h-5 drop-shadow-lg" /> },
+            { label: 'Manufacturing', icon: <FaIndustry className="w-5 h-5 drop-shadow-lg" /> },
+            { label: 'Services', icon: <FaHandsHelping className="w-5 h-5 drop-shadow-lg" /> },
+            { label: 'Education', icon: <FaGraduationCap className="w-5 h-5 drop-shadow-lg" /> },
+            { label: 'Renting', icon: <FaHome className="w-5 h-5 drop-shadow-lg" /> },
+            { label: 'Operation & Maintenance', icon: <FaTools className="w-5 h-5 drop-shadow-lg" /> },
+          ].map((sector, idx) => (
+            <div
+              key={sector.label}
+              className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-gray-900 rounded-full shadow border border-gray-200 dark:border-gray-700 text-[#774A67] dark:text-[#774A67] text-base font-semibold transition-all duration-200 hover:text-[#774A67]"
+              style={{ boxShadow: undefined }}
+              onMouseEnter={e => e.currentTarget.style.boxShadow = '0 6px 20px rgba(119, 74, 103, 0.5)'}
+              onMouseLeave={e => e.currentTarget.style.boxShadow = ''}
+            >
+              {sector.icon}
+              {sector.label}
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 };

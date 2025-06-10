@@ -18,3 +18,16 @@
     box-shadow: -10px 0 15px 5px #f6f6f600;
   }
 }
+
+@keyframes neonGlow {
+  0%, 100% {
+    box-shadow: 0 0 32px 4px #774A67, 0 0 64px 8px #bfa3e3;
+  }
+  50% {
+    box-shadow: 0 0 48px 12px #a259b5, 0 0 96px 16px #774A67;
+  }
+}
+
+.neon-glow-box {
+  box-shadow: 0 0 12px 2px #774A67, 0 0 24px 4px #ede7f6;
+}

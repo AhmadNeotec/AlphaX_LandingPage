@@ -1,4 +1,13 @@
 /* root and major containers */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
+
+:root {
+  --primary-color: #774A67;
+  --primary-light: #9E6B8E;
+  --accent-color: #40B93C;
+}
+
 *,
 *::before,
 *::after {
@@ -10,7 +19,7 @@ html:focus-within {
   scroll-behavior: smooth;
 }
 body {
-  font-family: 'Cairo';
+  
   min-height: 100vh;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
@@ -21,7 +30,7 @@ body {
 @media (prefers-color-scheme: dark) {
   body {
     background-color: #020303;
-    font-family: 'Cairo';
+    
   }
 }
 
@@ -113,4 +122,42 @@ a:not([class]) {
 .no-scrollbar::-webkit-scrollbar { /* WebKit */
   width: 0;
   height: 0;
+}
+
+/* Navigation Styles */
+.nav-link {
+  position: relative;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 500;
+  font-size: 16px;
+  color: #333;
+  text-decoration: none;
+  padding: 8px 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.nav-link::before {
+  display: none;
+}
+
+.nav-link:hover,
+.nav-link.active {
+  color: white;
+  font-weight: 600;
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .nav-link {
+    color: #fff;
+  }
+  
+  .nav-link:hover,
+  .nav-link.active {
+    color: white;
+  }
 }
