@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { FaChartLine, FaMoneyCheckAlt, FaBoxes, FaUsers, FaCogs, FaHandshake, FaFileInvoice, FaCashRegister, FaTags, FaUserFriends, FaBullseye, FaShieldAlt, FaUserCheck, FaCalendarCheck, FaIdBadge, FaCoins, FaTruck, FaClipboardList, FaWarehouse, FaUserTie, FaFileContract, FaCheckSquare, FaClock } from 'react-icons/fa';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import CTABanner from '../../CTABanner';
 
 const BUSINESS_APPS = [
@@ -90,8 +90,47 @@ const BUSINESS_APPS = [
   },
 ];
 
+// Icon mapping object
+const iconMap: { [key: string]: any } = {
+  FaChartLine,
+  FaMoneyCheckAlt,
+  FaBoxes,
+  FaUsers,
+  FaCogs,
+  FaHandshake,
+  FaFileInvoice,
+  FaCashRegister,
+  FaTags,
+  FaUserFriends,
+  FaBullseye,
+  FaShieldAlt,
+  FaUserCheck,
+  FaCalendarCheck,
+  FaIdBadge,
+  FaCoins,
+  FaTruck,
+  FaClipboardList,
+  FaWarehouse,
+  FaUserTie,
+  FaFileContract,
+  FaCheckSquare,
+  FaClock
+};
+
 const Features = () => {
-  const [selectedModule, setSelectedModule] = useState<string | null>(null);
+  // Use BUSINESS_APPS directly, no API call
+  const [features] = useState<any[]>(BUSINESS_APPS);
+  const [loading] = useState(false);
+
+  // No useEffect or fetchFeatures needed
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-[#774A67]"></div>
+      </div>
+    );
+  }
 
   return (
     <section className="relative py-20 md:py-32 overflow-hidden bg-gradient-to-br from-[#f7f8fa] via-[#f3f4f8] to-[#e9eaf3] dark:from-[#1a1a1f] dark:via-[#23232a] dark:to-[#18181c]">
@@ -118,26 +157,30 @@ const Features = () => {
 
       {/* Features Grid */}
       <div className="relative z-10 max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-16 px-4">
-        {BUSINESS_APPS.map((app, idx) => (
+        {features.map((app, idx) => {
+          return (
           <motion.div
-            key={app.title}
+              key={app.title + idx}
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ delay: idx * 0.1, duration: 0.7, type: 'spring' }}
             className={`group rounded-3xl bg-white/60 dark:bg-[#23232a]/70 shadow-2xl hover:shadow-[0_8px_40px_rgba(119,74,103,0.18)] border border-white/60 dark:border-[#774A67]/30 backdrop-blur-xl p-8 flex flex-col items-center text-center cursor-pointer transform hover:scale-105 transition-all duration-300 relative overflow-hidden animate-fadein`}
             style={{ boxShadow: '0 8px 40px 0 rgba(119,74,103,0.10), 0 1.5px 8px 0 rgba(119,74,103,0.10)' }}
           >
-            <div className={`mb-5 p-4 rounded-full bg-gradient-to-br ${app.color} shadow-xl group-hover:scale-110 transition-transform duration-300`}>{app.icon}</div>
+              <div className={`mb-5 p-4 rounded-full bg-gradient-to-br ${app.color} shadow-xl group-hover:scale-110 transition-transform duration-300`}>
+                {app.icon}
+              </div>
             <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2 drop-shadow-md bg-gradient-to-r from-[#774A67] to-[#8b5cf6] bg-clip-text text-transparent">
               {app.title}
             </h3>
             <p className="text-gray-600 dark:text-gray-300 text-lg font-medium leading-relaxed">
-              {app.desc}
+                {app.desc}
             </p>
             {/* 3D shine effect */}
             <div className="absolute left-1/2 top-0 -translate-x-1/2 w-2/3 h-10 bg-gradient-to-r from-white/60 via-white/10 to-white/0 rounded-b-full blur-lg opacity-60 pointer-events-none" />
           </motion.div>
-        ))}
+          );
+        })}
       </div>
       {/* CTA Banner */}
       <CTABanner />

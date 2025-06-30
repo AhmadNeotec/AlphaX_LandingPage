@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 // import { jwtDecode } from "jwt-decode"; // Enable if using real JWTs
 import { DecodedJwt } from "types/auth.request";
 
@@ -58,84 +59,93 @@ const fallbackDecodedJwt: DecodedJwt = {
   jti: "guest-jti",
 };
 
-export const rootStore = create<rootStore>((set) => ({
-  data: INIT_DATA,
+export const rootStore = create(
+  persist<{
+    data: ROOT_DATA;
+  } & rootStore>(
+    (set) => ({
+      data: INIT_DATA,
 
-  toggleStarted: () =>
-    set((state) => ({
-      data: { ...state.data, isStarting: !state.data.isStarting },
-    })),
+      toggleStarted: () =>
+        set((state) => ({
+          data: { ...state.data, isStarting: !state.data.isStarting },
+        })),
 
-  toggleSignUp: () =>
-    set((state) => ({
-      data: { ...state.data, isSignUp: !state.data.isSignUp },
-    })),
+      toggleSignUp: () =>
+        set((state) => ({
+          data: { ...state.data, isSignUp: !state.data.isSignUp },
+        })),
 
-  toggleConfigSite: () =>
-    set((state) => ({
-      data: { ...state.data, isConfigSite: !state.data.isConfigSite },
-    })),
+      toggleConfigSite: () =>
+        set((state) => ({
+          data: { ...state.data, isConfigSite: !state.data.isConfigSite },
+        })),
 
-  togglePayment: () =>
-    set((state) => ({
-      data: { ...state.data, isPayment: !state.data.isPayment },
-    })),
+      togglePayment: () =>
+        set((state) => ({
+          data: { ...state.data, isPayment: !state.data.isPayment },
+        })),
 
-  confirmPayment: () =>
-    set((state) => ({
-      data: { ...state.data, confirmPayment: true },
-    })),
+      confirmPayment: () =>
+        set((state) => ({
+          data: { ...state.data, confirmPayment: true },
+        })),
 
-  handleClientLogin: (accessToken: string) =>
-    set((state) => {
-      localStorage.setItem("in", "true");
-      localStorage.setItem("tk", accessToken);
-      localStorage.setItem("man", JSON.stringify(fallbackDecodedJwt));
+      handleClientLogin: (accessToken: string) =>
+        set((state) => {
+          localStorage.setItem("in", "true");
+          localStorage.setItem("tk", accessToken);
+          localStorage.setItem("man", JSON.stringify(fallbackDecodedJwt));
 
-      return {
-        data: {
-          ...state.data,
-          isIn: true,
-          tk: accessToken,
-          man: fallbackDecodedJwt,
-        },
-      };
+          return {
+            data: {
+              ...state.data,
+              isIn: true,
+              tk: accessToken,
+              man: fallbackDecodedJwt,
+            },
+          };
+        }),
+
+      // Optional: use this instead if you switch to real JWTs
+      /*
+      handleClientLogin: (accessToken: string) =>
+        set((state) => {
+          localStorage.setItem("in", "true");
+          localStorage.setItem("tk", accessToken);
+          const acTokenDecoded = jwtDecode<DecodedJwt>(accessToken);
+          localStorage.setItem("man", JSON.stringify(acTokenDecoded));
+
+          return {
+            data: {
+              ...state.data,
+              isIn: true,
+              tk: accessToken,
+              man: acTokenDecoded,
+            },
+          };
+        }),
+      */
+
+      handleClientLogout: () => {
+        localStorage.setItem("in", "false");
+        localStorage.removeItem("tk");
+        localStorage.removeItem("man");
+        return set(() => ({ data: INIT_DATA }));
+      },
+
+      toggleModules: () =>
+        set((state) => ({
+          data: { ...state.data, isModulesOpen: !state.data.isModulesOpen },
+        })),
+
+      toggleIndustries: () =>
+        set((state) => ({
+          data: { ...state.data, isIndustriesOpen: !state.data.isIndustriesOpen },
+        })),
     }),
-
-  // Optional: use this instead if you switch to real JWTs
-  /*
-  handleClientLogin: (accessToken: string) =>
-    set((state) => {
-      localStorage.setItem("in", "true");
-      localStorage.setItem("tk", accessToken);
-      const acTokenDecoded = jwtDecode<DecodedJwt>(accessToken);
-      localStorage.setItem("man", JSON.stringify(acTokenDecoded));
-
-      return {
-        data: {
-          ...state.data,
-          isIn: true,
-          tk: accessToken,
-          man: acTokenDecoded,
-        },
-      };
-    }),
-  */
-
-  handleClientLogout: () => {
-    localStorage.setItem("in", "false");
-    localStorage.removeItem("tk");
-    localStorage.removeItem("man");
-    return set(() => ({ data: INIT_DATA }));
-  },
-
-  toggleModules: () =>
-    set((state) => ({
-      data: { ...state.data, isModulesOpen: !state.data.isModulesOpen },
-    })),
-
-  toggleIndustries: () =>
-    set((state) => ({
-      data: { ...state.data, isIndustriesOpen: !state.data.isIndustriesOpen },
-    })),
-}));
+    {
+      name: "alphax-root", // storage key
+    }
+  )
+);

@@ -7,12 +7,15 @@ import { VITE_LAMBDA_URL } from "@constants/index";
 // ENDPOINTS keys
 export const ENDPOINTS = {
   // Auth
-  login: "https://test.neotechis.com/api/method/alphax_erp.api.login.login", // Login 
-  logout: "https://test.neotechis.com/api/method/alphax_erp.api.login.logout",
+  //login: " http://172.22.60.121:8000/api/method/alphax_erp.api.login.login", // Login 
+  login: " http://172.22.60.121:8000/api/method/alphax_erp.api.login.login", // Login 
+  logout: " http://172.22.60.121:8000/api/method/alphax_erp.api.login.logout",
   // signup: "http://test.neotec.ai/api/method/alphax_erp.api.auth.signup_and_get_token",
   // createSite: "http://test.neotec.ai/api/method/alphax_erp.api.utils.create_new_site",
-  signup: "https://test.neotechis.com/api/method/alphax_erp.api.auth.signup_and_get_token",
-  createSite: "https://test.neotechis.com/api/method/alphax_erp.api.utils.create_new_site",
+  signup: " http://172.22.60.121:8000/api/method/alphax_erp.api.auth.signup_and_get_token",
+  createSite: " http://172.22.60.121:8000/api/method/alphax_erp.api.utils.create_new_site",
+  //createUser: " http://172.22.60.121:8000/api/method/alphax_erp.api.signup.signup",
+  createUser: " http://172.22.60.121:8000/api/method/alphax_erp.api.signup.signup",
 
   // Optional
   configSite: "/server/config-site",

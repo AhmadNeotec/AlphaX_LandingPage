@@ -7,6 +7,7 @@ import Loader from "@components/common/Loader";
 import { cn } from "@utils/index";
 import { useNavigate } from "react-router-dom";
 import Logo from "@components/Logo";
+import PaymentDetailsModal from "../../../../pages/PaymentDetailsModal";
 
 type Props = {
   toggleSignUp: () => void;
@@ -77,7 +78,6 @@ const SignInForm = ({ loginSuccess, setLoginSuccess }: Props) => {
         localStorage.setItem("isSuperAdmin", "true");
         setLoginSuccess(true);
         enqueueSnackbar("Welcome Super Admin!", { variant: "success" });
-        
         setTimeout(() => {
           console.log("➡️ Redirecting to CMS panel dashboard");
           toggleStarted();
@@ -90,13 +90,13 @@ const SignInForm = ({ loginSuccess, setLoginSuccess }: Props) => {
       localStorage.removeItem("sid");
       console.log("🧹 Cleared localStorage token");
 
-      await fetch("https://test.neotechis.com/api/method/logout", {
+      await fetch(" http://172.22.60.121:8000/api/method/logout", {
         method: "GET",
         credentials: "include",
       });
       console.log("🔄 Forced logout of any existing session");
 
-      const loginRes = await fetch("https://test.neotechis.com/api/method/alphax_erp.api.login.login", {
+      const loginRes = await fetch(" http://172.22.60.121:8000/api/method/alphax_erp.api.login.login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -132,14 +132,15 @@ const SignInForm = ({ loginSuccess, setLoginSuccess }: Props) => {
       localStorage.setItem("sid", token);
       console.log("💾 Token saved to localStorage");
 
+      // Store user id in localStorage for later use
+      localStorage.setItem("user", user);
+      console.log("💾 User id saved to localStorage:", user);
+
       clientLogin(token);
       console.log("🔓 clientLogin called");
 
-      setLoginSuccess(true);
-      enqueueSnackbar(`Welcome ${user}`, { variant: "success" });
-
+      // Directly go to client dashboard after login
       setTimeout(() => {
-        console.log("➡️ Redirecting to client dashboard");
         toggleStarted();
         navigate("/clientLogin");
       }, 500);
@@ -161,6 +162,7 @@ const SignInForm = ({ loginSuccess, setLoginSuccess }: Props) => {
   };
 
   return (
+    <>
     <div className={cn(
       "w-full mx-4 my-4 lg:mx-0 lg:mt-7 bg-white/90 backdrop-blur-md border border-gray-200/50 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:bg-gray-800/90 dark:border-gray-700/50 md:max-w-[450px] transform perspective-1000 hover:scale-[1.02] transition-all duration-300",
       loginSuccess && "md:max-w-max"
@@ -283,6 +285,7 @@ const SignInForm = ({ loginSuccess, setLoginSuccess }: Props) => {
         </div>
       )}
     </div>
+    </>
   );
 };
 

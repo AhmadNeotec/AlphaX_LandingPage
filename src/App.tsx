@@ -12,9 +12,10 @@ import Module from './components/sections/Module';
 import Industries from './components/sections/Industries';
 import CTABanner from './components/CTABanner';
 import ContactPage from './pages/ContactPage';
-import ChatGPTInterface from './components/ChatGPT/ChatGPTInterface';
-import ChatGPTModal from './components/ChatGPT/ChatGPTModal';
-import { FiMessageCircle } from 'react-icons/fi';
+//import ChatGPTInterface from './components/ChatGPT/ChatGPTInterface';
+//import ChatGPTModal from './components/ChatGPT/ChatGPTModal';
+//import { FiMessageCircle } from 'react-icons/fi';
+import SubscriptionPlan from './pages/SubscriptionPlan';
 
 const Divider = lazy(() => import("@components/common/Divider"));
 const Navbar = lazy(() => import("@components/sections/Navbar"));
@@ -36,6 +37,7 @@ const ClientDashboard = lazy(() => import("./pages/ClientDashboard/index"));
 const SignUpPage = lazy(() => import("./pages/SignUpPage"));
 const PricingPage = lazy(() => import("./pages/PricingPage"));
 const PricinglistPage = lazy(() => import("./pages/PricinglistPage"));
+const PaymentDetailsPage = lazy(() => import("./pages/PaymentDetailsPage"));
 
 // Sales pages
 const Sales = lazy(() => import("./pages/Sales/Sales"));
@@ -146,9 +148,13 @@ function App() {
 
   const [isChatGPTModalOpen, setIsChatGPTModalOpen] = useState(false);
 
+  // Rehydrate Zustand store from localStorage on app load
   useEffect(() => {
-    handleClientLogout();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const isIn = localStorage.getItem("in") === "true";
+    const tk = localStorage.getItem("tk") || "";
+    if (isIn) {
+      rootStore.getState().handleClientLogin(tk);
+    }
   }, []);
 
   return (
@@ -162,6 +168,7 @@ function App() {
             <Route path="/pricinglist" element={<PricinglistPage />} />
             <Route path="/cta-banner" element={<CTABannerPage />} />
             <Route path="/contact" element={<ContactPage />} />
+            <Route path="/payment-details" element={<PaymentDetailsPage />} />
             
             {/* Sales Routes */}
             <Route path="/Sales/Sales" element={<Sales />} />
@@ -235,11 +242,22 @@ function App() {
                 )
               }
             />
+
+            <Route
+              path="/subscription-plan"
+              element={
+                isLoggedIn ? (
+                  <SubscriptionPlan />
+                ) : (
+                  <Navigate to="/" replace />
+                )
+              }
+            />
           </Routes>
         </Suspense>
         <GetStartedModal />
         <CreateSiteModal />
-        <PaymentModal />
+        {/* <PaymentModal /> Removed to prevent always showing the payment modal */}
         {/*
         <button
           className="fixed bottom-8 right-8 bg-[#10a37f] text-white p-4 rounded-full shadow-lg hover:bg-[#0d8c6d] transition-all duration-200 flex items-center gap-2 z-[999]"

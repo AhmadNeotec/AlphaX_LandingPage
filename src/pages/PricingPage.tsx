@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../components/sections/Navbar';
 import RiyalSymbol from '../images/Saudi_Riyal_Symbol.png';
 
@@ -290,6 +290,7 @@ function getDynamicPrice(planName: string, type: string, defaultValue: number | 
 
 const PricingPage: React.FC = () => {
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('yearly');
+  const navigate = useNavigate();
 
   return (
     <section className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#f7f8fa] via-[#f3f4f8] to-[#e9eaf3] dark:from-[#1a1a1f] dark:via-[#23232a] dark:to-[#18181c]">
@@ -382,8 +383,12 @@ const PricingPage: React.FC = () => {
                     {plan.name !== 'Enterprise' && (
                       <button
                         className="mt-4 mb-1 px-6 py-2 bg-[#774A67] hover:bg-[#5e3752] text-white font-bold rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-[#774A67] focus:ring-offset-2"
+                        onClick={() => {
+                          console.log('Navigating to SignUpPage with plan:', plan.name);
+                          navigate('/signup', { state: { planId: plan.name } });
+                        }}
                       >
-                        Upgrade
+                        Select
                       </button>
                     )}
                   </th>

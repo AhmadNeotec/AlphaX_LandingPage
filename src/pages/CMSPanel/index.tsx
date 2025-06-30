@@ -6,6 +6,7 @@ import CMSSidebar, { SidebarSection } from './CMSSidebar';
 import Dashboard from './Dashboard';
 import FeaturesManagement from './FeaturesManagement';
 import NavbarManagement from './NavbarManagement';
+import UserManagement from './UserManagement';
 import { FiSave, FiEdit2 } from 'react-icons/fi';
 
 const PLAN_NAMES = ['Basic', 'Advanced', 'Premium'];
@@ -157,6 +158,8 @@ const CMSPanel = () => {
     mainContent = <FeaturesManagement />;
   } else if (activeSection === 'navbar') {
     mainContent = <NavbarManagement />;
+  } else if (activeSection === 'users') {
+    mainContent = <UserManagement />;
   } else {
     mainContent = (
       <div className="flex items-center justify-center h-full text-2xl text-gray-400 font-semibold">
