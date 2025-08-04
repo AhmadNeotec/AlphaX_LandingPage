@@ -280,10 +280,6 @@ const SignUpForm = ({ toggleSignUp }: Props) => {
                   type="password"
                   {...register("password", {
                     required: "Password is required",
-                    minLength: {
-                      value: 6,
-                      message: "Password must have at least 6 characters",
-                    },
                     validate: (value) => {
                       const hasUpperCase = /[A-Z]/.test(value);
                       const hasLowerCase = /[a-z]/.test(value);

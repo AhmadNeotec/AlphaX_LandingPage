@@ -56,7 +56,7 @@ const PaymentDetailsModal: React.FC<PaymentDetailsModalProps> = ({ isOpen, onClo
       setSubmitting(true);
       try {
         console.log('[PaymentModal] Sending POST request to Frappe API...');
-        const res = await fetch(" http://172.22.60.121:8000/api/method/alphax_erp.api.payment.save_payment_details", {
+        const res = await fetch(" https://newhrms.muftaah.com/api/method/alphax_erp.api.payment.save_payment_details", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

@@ -7,7 +7,7 @@ import Loader from "@components/common/Loader";
 import { cn } from "@utils/index";
 import { useNavigate } from "react-router-dom";
 import Logo from "@components/Logo";
-import PaymentDetailsModal from "../../../../pages/PaymentDetailsModal";
+//import PaymentDetailsModal from "../../../../pages/PaymentDetailsModal";
 
 type Props = {
   toggleSignUp: () => void;
@@ -72,90 +72,50 @@ const SignInForm = ({ loginSuccess, setLoginSuccess }: Props) => {
     console.log("🔐 Attempting login with:", data);
     setLogging(true);
     try {
-      // Check for super admin credentials
-      if (data.email === "Superadmin@gmail.com" && data.password === "SuperAdmin@1234") {
-        console.log("✅ Super admin login successful");
-        localStorage.setItem("isSuperAdmin", "true");
-        setLoginSuccess(true);
-        enqueueSnackbar("Welcome Super Admin!", { variant: "success" });
-        setTimeout(() => {
-          console.log("➡️ Redirecting to CMS panel dashboard");
-          toggleStarted();
-          navigate("/cms-panel", { replace: true });
-        }, 500);
-        return;
-      }
-
-      // Regular login flow
-      localStorage.removeItem("sid");
-      console.log("🧹 Cleared localStorage token");
-
-      await fetch(" http://172.22.60.121:8000/api/method/logout", {
-        method: "GET",
-        credentials: "include",
-      });
-      console.log("🔄 Forced logout of any existing session");
-
-      const loginRes = await fetch(" http://172.22.60.121:8000/api/method/alphax_erp.api.login.login", {
+      // Always call the login API
+      const loginPayload = {
+        email: data.email,
+        password: data.password,
+      };
+      console.log("Login API payload:", loginPayload);
+      const loginRes = await fetch("https://newhrms.muftaah.com/api/method/alphax_erp.api.login.login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        credentials: "include",
-        body: JSON.stringify({
-          email: data.email,
-          password: data.password,
-        }),
+        body: JSON.stringify(loginPayload),
+        credentials: 'include',
       });
-
-      console.log("📥 Login response status:", loginRes.status);
-
-      if (!loginRes.ok) {
-        const err = await loginRes.json();
-        console.error("❌ Login failed:", err);
-
-        const messages = JSON.parse(err._server_messages || "[]");
-        const errorMsg = messages.length ? messages[0] : err.message || "Login failed";
-        throw new Error(errorMsg);
+      console.log("Login API response status:", loginRes.status);
+      const loginData = await loginRes.json();
+      console.log("Login API response body:", loginData);
+      if (loginRes.ok && loginData.message && loginData.message.token) {
+        enqueueSnackbar("Login successful!", { variant: "success" });
+        if (data.email.toLowerCase() === "superadmin@gmail.com") {
+          console.log("Superadmin login detected, redirecting to /cms-panel");
+          localStorage.setItem("isSuperAdmin", "true");
+          localStorage.setItem("tk", loginData.message.token); // Save token for superadmin
+          setLoginSuccess(true);
+          toggleStarted();
+          setTimeout(() => {
+            navigate("/cms-panel", { replace: true });
+          }, 500);
+        } else {
+          console.log("Regular user login, redirecting to /clientLogin");
+          localStorage.removeItem("isSuperAdmin");
+          setLoginSuccess(true);
+          clientLogin(loginData.message.token); // Set isLoggedIn to true
+          toggleStarted();
+          setTimeout(() => {
+            navigate("/clientLogin", { replace: true });
+          }, 500);
+        }
+      } else {
+        enqueueSnackbar("Login failed. Please check your credentials.", { variant: "error" });
       }
-
-      const result = await loginRes.json();
-      console.log("✅ Login successful, response:", result);
-
-      const { token, user } = result?.message || {};
-
-      if (!token || !user) {
-        console.error("❗ Missing token or user in response:", result);
-        throw new Error("Invalid response: missing token or user");
-      }
-
-      localStorage.setItem("sid", token);
-      console.log("💾 Token saved to localStorage");
-
-      // Store user id in localStorage for later use
-      localStorage.setItem("user", user);
-      console.log("💾 User id saved to localStorage:", user);
-
-      clientLogin(token);
-      console.log("🔓 clientLogin called");
-
-      // Directly go to client dashboard after login
-      setTimeout(() => {
-        toggleStarted();
-        navigate("/clientLogin");
-      }, 500);
     } catch (error) {
-      console.error("🚨 Login error:", error);
-      enqueueSnackbar((error as Error).message || "Login failed", {
-        variant: "error",
-      });
-      // Reset form on error
-      setFormKey(prev => prev + 1);
-      setTimeout(() => {
-        reset({ email: "", password: "" });
-        setValue("email", "");
-        setValue("password", "");
-      }, 0);
+      console.error("Login error:", error);
+      enqueueSnackbar("Login error. Please try again.", { variant: "error" });
     } finally {
       setLogging(false);
     }
@@ -222,10 +182,6 @@ const SignInForm = ({ loginSuccess, setLoginSuccess }: Props) => {
                   placeholder="Enter your password"
                   {...register("password", {
                     required: "Password is required",
-                    minLength: {
-                      value: 6,
-                      message: "Password must have at least 6 characters",
-                    },
                   })}
                 />
                 {formErrors.password && (

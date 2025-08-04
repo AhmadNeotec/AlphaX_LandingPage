@@ -7,15 +7,15 @@ import { VITE_LAMBDA_URL } from "@constants/index";
 // ENDPOINTS keys
 export const ENDPOINTS = {
   // Auth
-  //login: " http://172.22.60.121:8000/api/method/alphax_erp.api.login.login", // Login 
-  login: " http://172.22.60.121:8000/api/method/alphax_erp.api.login.login", // Login 
-  logout: " http://172.22.60.121:8000/api/method/alphax_erp.api.login.logout",
+  //login: " https://newhrms.muftaah.com/api/method/alphax_erp.api.login.login", // Login 
+  login: " https://newhrms.muftaah.com/api/method/alphax_erp.api.login.login", // Login 
+  logout: " https://newhrms.muftaah.com/api/method/alphax_erp.api.login.logout",
   // signup: "http://test.neotec.ai/api/method/alphax_erp.api.auth.signup_and_get_token",
   // createSite: "http://test.neotec.ai/api/method/alphax_erp.api.utils.create_new_site",
-  signup: " http://172.22.60.121:8000/api/method/alphax_erp.api.auth.signup_and_get_token",
-  createSite: " http://172.22.60.121:8000/api/method/alphax_erp.api.utils.create_new_site",
-  //createUser: " http://172.22.60.121:8000/api/method/alphax_erp.api.signup.signup",
-  createUser: " http://172.22.60.121:8000/api/method/alphax_erp.api.signup.signup",
+  signup: " https://newhrms.muftaah.com/api/method/alphax_erp.api.auth.signup_and_get_token",
+  createSite: " https://newhrms.muftaah.com/api/method/alphax_erp.api.utils.create_new_site",
+  //createUser: " https://newhrms.muftaah.com/api/method/alphax_erp.api.signup.signup",
+  createUser: " https://newhrms.muftaah.com/api/method/alphax_erp.api.signup.signup",
 
   // Optional
   configSite: "/server/config-site",

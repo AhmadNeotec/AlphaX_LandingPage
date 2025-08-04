@@ -151,58 +151,109 @@ const ClientDashboard = () => {
               Today Summary 
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-              {/* Invoice */}
+              {/* Example summary tiles, replace values with dynamic data as needed */}
               <div className="rounded-2xl bg-gradient-to-br from-blue-400 to-blue-600 shadow-xl border border-blue-200/50 dark:border-blue-700/50 p-6 flex flex-col justify-between min-h-[120px]">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-white text-lg font-bold">$0</p>
-                    <p className="text-white/80 text-sm font-medium">Invoice</p>
+                    <p className="text-white/80 text-sm font-medium">Purchase Orders</p>
                   </div>
-                  <FiCreditCard className="w-10 h-10 text-white/70" />
+                  <FiShoppingCart className="w-10 h-10 text-white/70" />
                 </div>
-                <button className="mt-4 text-white/80 text-xs font-semibold flex items-center gap-1 hover:underline">More info <span>→</span></button>
+                <button 
+                  className="mt-4 text-white/80 text-xs font-semibold flex items-center gap-1 hover:underline"
+                  onClick={() => navigate('/clientLogin/purchase-orders')}
+                >
+                  More info <span>→</span>
+                </button>
               </div>
-              {/* Subscriptions */}
               <div className="rounded-2xl bg-gradient-to-br from-cyan-400 to-cyan-600 shadow-xl border border-cyan-200/50 dark:border-cyan-700/50 p-6 flex flex-col justify-between min-h-[120px]">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-white text-lg font-bold">0</p>
-                    <p className="text-white/80 text-sm font-medium">Subscriptions</p>
+                    <p className="text-white text-lg font-bold">$0</p>
+                    <p className="text-white/80 text-sm font-medium">Purchase Receipt</p>
                   </div>
-                  <FiDatabase className="w-10 h-10 text-white/70" />
+                  <FiRepeat className="w-10 h-10 text-white/70" />
                 </div>
                 <button className="mt-4 text-white/80 text-xs font-semibold flex items-center gap-1 hover:underline">More info <span>→</span></button>
               </div>
-              {/* Sale Invoices */}
               <div className="rounded-2xl bg-gradient-to-br from-indigo-400 to-indigo-600 shadow-xl border border-indigo-200/50 dark:border-indigo-700/50 p-6 flex flex-col justify-between min-h-[120px]">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-white text-lg font-bold">$0</p>
-                    <p className="text-white/80 text-sm font-medium">Sale Invoices</p>
+                    <p className="text-white/80 text-sm font-medium">Sales</p>
                   </div>
                   <FiShoppingBag className="w-10 h-10 text-white/70" />
                 </div>
-                <button onClick={() => navigate('/clientDashboard/sales-invoices')} className="mt-4 text-white/80 text-xs font-semibold flex items-center gap-1 hover:underline">More info <span>→</span></button>
+                <button className="mt-4 text-white/80 text-xs font-semibold flex items-center gap-1 hover:underline">More info <span>→</span></button>
               </div>
-              {/* Sites */}
-              <div className="rounded-2xl bg-gradient-to-br from-purple-400 to-purple-600 shadow-xl border border-purple-200/50 dark:border-purple-700/50 p-6 flex flex-col justify-between min-h-[120px]">
+              <div className="rounded-2xl bg-gradient-to-br from-gray-400 to-gray-600 shadow-xl border border-gray-200/50 dark:border-gray-700/50 p-6 flex flex-col justify-between min-h-[120px]">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-white text-lg font-bold">0</p>
-                    <p className="text-white/80 text-sm font-medium">Sites</p>
+                    <p className="text-white text-lg font-bold">$0</p>
+                    <p className="text-white/80 text-sm font-medium">Sales Return</p>
                   </div>
-                  <FiSettings className="w-10 h-10 text-white/70" />
+                  <FiCornerUpLeft className="w-10 h-10 text-white/70" />
                 </div>
                 <button className="mt-4 text-white/80 text-xs font-semibold flex items-center gap-1 hover:underline">More info <span>→</span></button>
               </div>
-              {/* Users */}
               <div className="rounded-2xl bg-gradient-to-br from-green-400 to-green-600 shadow-xl border border-green-200/50 dark:border-green-700/50 p-6 flex flex-col justify-between min-h-[120px]">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-white text-lg font-bold">0</p>
-                    <p className="text-white/80 text-sm font-medium">Users</p>
+                    <p className="text-white text-lg font-bold">$0</p>
+                    <p className="text-white/80 text-sm font-medium">Client Payment</p>
                   </div>
-                  <FiUsers className="w-10 h-10 text-white/70" />
+                  <FiArrowDownCircle className="w-10 h-10 text-white/70" />
+                </div>
+                <button className="mt-4 text-white/80 text-xs font-semibold flex items-center gap-1 hover:underline">More info <span>→</span></button>
+              </div>
+              <div className="rounded-2xl bg-gradient-to-br from-purple-400 to-purple-600 shadow-xl border border-purple-200/50 dark:border-purple-700/50 p-6 flex flex-col justify-between min-h-[120px]">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-white text-lg font-bold">$0</p>
+                    <p className="text-white/80 text-sm font-medium">Supplier Payment</p>
+                  </div>
+                  <FiArrowUpCircle className="w-10 h-10 text-white/70" />
+                </div>
+                <button className="mt-4 text-white/80 text-xs font-semibold flex items-center gap-1 hover:underline">More info <span>→</span></button>
+              </div>
+              <div className="rounded-2xl bg-gradient-to-br from-red-400 to-red-600 shadow-xl border border-red-200/50 dark:border-red-700/50 p-6 flex flex-col justify-between min-h-[120px]">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-white text-lg font-bold">$0</p>
+                    <p className="text-white/80 text-sm font-medium">Expense</p>
+                  </div>
+                  <FiTrendingDown className="w-10 h-10 text-white/70" />
+                </div>
+                <button className="mt-4 text-white/80 text-xs font-semibold flex items-center gap-1 hover:underline">More info <span>→</span></button>
+              </div>
+              <div className="rounded-2xl bg-gradient-to-br from-sky-900 to-blue-900 shadow-xl border border-blue-900/50 dark:border-blue-900/50 p-6 flex flex-col justify-between min-h-[120px]">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-white text-lg font-bold">$0</p>
+                    <p className="text-white/80 text-sm font-medium">Balance Transfers</p>
+                  </div>
+                  <FiRefreshCw className="w-10 h-10 text-white/70" />
+                </div>
+                <button className="mt-4 text-white/80 text-xs font-semibold flex items-center gap-1 hover:underline">More info <span>→</span></button>
+              </div>
+              <div className="rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-700 shadow-xl border border-indigo-200/50 dark:border-indigo-700/50 p-6 flex flex-col justify-between min-h-[120px]">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-white text-lg font-bold">66</p>
+                    <p className="text-white/80 text-sm font-medium">Total Stock Quantity</p>
+                  </div>
+                  <FiBox className="w-10 h-10 text-white/70" />
+                </div>
+                <button className="mt-4 text-white/80 text-xs font-semibold flex items-center gap-1 hover:underline">More info <span>→</span></button>
+              </div>
+              <div className="rounded-2xl bg-gradient-to-br from-cyan-500 to-cyan-700 shadow-xl border border-cyan-200/50 dark:border-cyan-700/50 p-6 flex flex-col justify-between min-h-[120px]">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-white text-lg font-bold">65682</p>
+                    <p className="text-white/80 text-sm font-medium">Total Stock Value</p>
+                  </div>
+                  <FiDollarSign className="w-10 h-10 text-white/70" />
                 </div>
                 <button className="mt-4 text-white/80 text-xs font-semibold flex items-center gap-1 hover:underline">More info <span>→</span></button>
               </div>

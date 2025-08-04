@@ -16,6 +16,7 @@ import ContactPage from './pages/ContactPage';
 //import ChatGPTModal from './components/ChatGPT/ChatGPTModal';
 //import { FiMessageCircle } from 'react-icons/fi';
 import SubscriptionPlan from './pages/SubscriptionPlan';
+const ChatPage = lazy(() => import('./pages/Chat'));
 
 const Divider = lazy(() => import("@components/common/Divider"));
 const Navbar = lazy(() => import("@components/sections/Navbar"));
@@ -91,6 +92,7 @@ const Memberships = lazy(() => import("./pages/Clients/Memberships"));
 
 // CMS Panel
 const CMSPanel = lazy(() => import("./pages/CMSPanel"));
+import ModulePricingManagement from './pages/CMSPanel/ModulePricingManagement';
 
 // Landing page component
 const LandingPage = () => {
@@ -137,6 +139,11 @@ const CTABannerPage = () => {
   );
 };
 
+import PurchaseOrders from './pages/ClientDashboard/PurchaseOrders';
+import SalesInvoices from './pages/ClientDashboard/SalesInvoices';
+const BillingManagement = lazy(() => import('./pages/ClientDashboard/BillingManagement'));
+const Profile = lazy(() => import('./pages/ClientDashboard/Profile'));
+
 function App() {
   const handleClientLogout = rootStore(({ handleClientLogout }) => handleClientLogout);
   const isLoggedIn = rootStore(({ data }) => data.isIn);
@@ -168,6 +175,7 @@ function App() {
             <Route path="/pricinglist" element={<PricinglistPage />} />
             <Route path="/cta-banner" element={<CTABannerPage />} />
             <Route path="/contact" element={<ContactPage />} />
+            <Route path="/clientLogin/chat" element={<ChatPage />} />
             <Route path="/payment-details" element={<PaymentDetailsPage />} />
             
             {/* Sales Routes */}
@@ -230,6 +238,28 @@ function App() {
                 )
               }
             />
+            <Route
+              path="/clientLogin/purchase-orders"
+              element={
+                isLoggedIn ? (
+                  <PurchaseOrders />
+                ) : (
+                  <Navigate to="/" replace />
+                )
+              }
+            />
+            <Route
+              path="/clientDashboard/sales-invoices"
+              element={
+                isLoggedIn ? (
+                  <SalesInvoices />
+                ) : (
+                  <Navigate to="/" replace />
+                )
+              }
+            />
+            <Route path="/clientLogin/billing-management" element={<BillingManagement />} />
+            <Route path="/clientLogin/profile" element={<Profile />} />
 
             {/* CMS Panel Route */}
             <Route
@@ -237,6 +267,16 @@ function App() {
               element={
                 localStorage.getItem("isSuperAdmin") ? (
                   <CMSPanel />
+                ) : (
+                  <Navigate to="/" replace />
+                )
+              }
+            />
+            <Route
+              path="/cms-panel/module-pricing"
+              element={
+                localStorage.getItem("isSuperAdmin") ? (
+                  <ModulePricingManagement />
                 ) : (
                   <Navigate to="/" replace />
                 )

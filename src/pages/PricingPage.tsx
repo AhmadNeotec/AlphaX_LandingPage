@@ -450,4 +450,5 @@ const PricingPage: React.FC = () => {
   );
 };
 
+export { plans };
 export default PricingPage; 

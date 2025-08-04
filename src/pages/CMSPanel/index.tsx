@@ -8,6 +8,7 @@ import FeaturesManagement from './FeaturesManagement';
 import NavbarManagement from './NavbarManagement';
 import UserManagement from './UserManagement';
 import { FiSave, FiEdit2 } from 'react-icons/fi';
+import ModulePricingManagement from './ModulePricingManagement';
 
 const PLAN_NAMES = ['Basic', 'Advanced', 'Premium'];
 
@@ -45,46 +46,20 @@ const CMSPanel = () => {
     navigate("/");
   };
 
-  const handleSave = () => {
-    // Log price changes
-    const saved = localStorage.getItem('pricingAmounts');
-    let oldPricing = defaultPricing;
-    if (saved) oldPricing = JSON.parse(saved);
-    type PlanField = keyof typeof defaultPricing[typeof PLAN_NAMES[number]];
-    const fields: PlanField[] = ['monthly', 'yearly', 'yearlyTotal'];
-    const changes = PLAN_NAMES.flatMap(plan => {
-      const oldPlan = oldPricing[plan];
-      const newPlan = pricing[plan];
-      return fields.flatMap(field => {
-        if (oldPlan[field] !== newPlan[field]) {
-          return [{
-            plan,
-            field,
-            oldPrice: oldPlan[field],
-            newPrice: newPlan[field],
-            timestamp: new Date().toISOString(),
-          }];
-        }
-        return [];
-      });
-    });
-    if (changes.length > 0) {
-      const history = JSON.parse(localStorage.getItem('priceChangeHistory') || '[]');
-      localStorage.setItem('priceChangeHistory', JSON.stringify([...changes, ...history]));
-    }
-    localStorage.setItem('pricingAmounts', JSON.stringify(pricing));
-    setIsEditing(false);
-    enqueueSnackbar("Pricing updated!", { variant: "success" });
-  };
-
-  const handleChange = (plan: string, field: keyof PricingAmounts["Basic"], value: string) => {
+  const handleChange = (plan: string, key: string, value: string) => {
     setPricing(prev => ({
       ...prev,
       [plan]: {
         ...prev[plan],
-        [field]: parseFloat(value) || 0,
+        [key]: parseFloat(value) || 0,
       },
     }));
+  };
+
+  const handleSave = () => {
+    localStorage.setItem('pricingAmounts', JSON.stringify(pricing));
+    enqueueSnackbar('Pricing amounts saved successfully!', { variant: 'success' });
+    setIsEditing(false);
   };
 
   // Main content switcher
@@ -93,6 +68,8 @@ const CMSPanel = () => {
     mainContent = <Dashboard />;
   } else if (activeSection === 'pricing') {
     mainContent = (
+      <>
+              <ModulePricingManagement />
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-xl shadow-lg p-6">
           <div className="flex justify-between items-center mb-6">
@@ -153,6 +130,7 @@ const CMSPanel = () => {
           </div>
         </div>
       </div>
+      </>
     );
   } else if (activeSection === 'features') {
     mainContent = <FeaturesManagement />;

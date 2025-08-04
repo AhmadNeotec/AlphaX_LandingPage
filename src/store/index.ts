@@ -40,6 +40,7 @@ interface rootStore {
   handleClientLogout: () => void;
   toggleModules: () => void;
   toggleIndustries: () => void;
+  setStarted: (value: boolean) => void;
 }
 
 // 🧩 Full fallback guest JWT for type compatibility
@@ -142,6 +143,11 @@ export const rootStore = create(
       toggleIndustries: () =>
         set((state) => ({
           data: { ...state.data, isIndustriesOpen: !state.data.isIndustriesOpen },
+        })),
+
+      setStarted: (value: boolean) =>
+        set((state) => ({
+          data: { ...state.data, isStarting: value },
         })),
     }),
     {

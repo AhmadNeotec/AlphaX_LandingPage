@@ -29,6 +29,8 @@
     "clsx": "^2.0.0",
     "express": "^5.1.0",
     "framer-motion": "^12.15.0",
+    "jspdf": "^3.0.1",
+    "jspdf-autotable": "^5.0.2",
     "next": "^15.2.4",
     "notistack": "^3.0.1",
     "openai": "^4.103.0",

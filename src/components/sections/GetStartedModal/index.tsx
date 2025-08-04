@@ -1,5 +1,5 @@
 import { rootStore } from "@store/index";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import SignInForm from "./components/SignInForm";
 import SignUpForm from "./components/SignUpForm";
 
@@ -8,10 +8,18 @@ const GetStartedModal = () => {
   const isStarting = rootStore(({ data }) => data.isStarting);
   const isSignUp = rootStore(({ data }) => data.isSignUp);
   const toggleStarted = rootStore(({ toggleStarted }) => toggleStarted);
+  const setStarted = rootStore(({ setStarted }) => setStarted);
   const toggleSignUp = rootStore(({ toggleSignUp }) => toggleSignUp);
 
   // states
   const [loginSuccess, setLoginSuccess] = useState(false);
+
+  useEffect(() => {
+    if (loginSuccess) {
+      // Explicitly close modal after login
+      setStarted(false);
+    }
+  }, [loginSuccess, setStarted]);
 
   if (!isStarting) return null;
   

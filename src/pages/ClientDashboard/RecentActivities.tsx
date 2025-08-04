@@ -202,152 +202,149 @@ const RecentActivities: React.FC = () => {
   const renderTable = () => {
     if (activeTab === 0) {
       return (
-        <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm mt-4">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">#</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">Invoice No</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">Invoice Date</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">Client</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">Subtotal</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">Net Total</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">Total Due</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">Status</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-100">
-              {INVOICES_DATA.map((row, idx) => (
-                <tr key={row.invoiceNo} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 text-sm text-gray-700 font-medium">{idx + 1}</td>
-                  <td className="px-4 py-3 text-sm">
-                    <a href={row.link} className="text-[#774A67] font-semibold hover:underline">{row.invoiceNo}</a>
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-700">{row.invoiceDate}</td>
-                  <td className="px-4 py-3 text-sm text-gray-700">{row.client}</td>
-                  <td className="px-4 py-3 text-sm text-gray-700">{row.subtotal}</td>
-                  <td className="px-4 py-3 text-sm text-gray-700">{row.netTotal}</td>
-                  <td className="px-4 py-3 text-sm text-gray-700">{row.totalDue}</td>
-                  <td className="px-4 py-3 text-sm">
-                    <span className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-[#8b5cf6]/10 text-[#774A67] border border-[#8b5cf6]/30">{row.status}</span>
-                  </td>
+        <div key="invoices">
+          <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm mt-4">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">#</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">Invoice No</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">Invoice Date</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">Client</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">Subtotal</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">Net Total</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">Total Due</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">Status</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-100">
+                {INVOICES_DATA.map((row, idx) => (
+                  <tr key={`invoices-${row.invoiceNo}`} className="hover:bg-gray-50">
+                    <td className="px-4 py-3 text-sm text-gray-700 font-medium">{idx + 1}</td>
+                    <td className="px-4 py-3 text-sm">
+                      <a href={row.link} className="text-[#774A67] font-semibold hover:underline">{row.invoiceNo}</a>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-700">{row.invoiceDate}</td>
+                    <td className="px-4 py-3 text-sm text-gray-700">{row.client}</td>
+                    <td className="px-4 py-3 text-sm text-gray-700">{row.subtotal}</td>
+                    <td className="px-4 py-3 text-sm text-gray-700">{row.netTotal}</td>
+                    <td className="px-4 py-3 text-sm text-gray-700">{row.totalDue}</td>
+                    <td className="px-4 py-3 text-sm">
+                      {parseFloat(row.totalDue.replace(/[^\d.-]/g, '')) === 0 ? (
+                        <span className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700 border border-green-200">Paid</span>
+                      ) : (
+                        <span className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700 border border-red-200">Unpaid</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       );
     }
     if (activeTab === 1) {
-      // Purchases tab
       return (
-        <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm mt-4">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">#</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">Purchase No</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">Date</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">Supplier</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">Subtotal</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">Net Total</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">Total Due</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">Status</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-100">
-              {PURCHASES_DATA.map((row, idx) => (
-                <tr key={row.purchaseNo} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 text-sm text-gray-700 font-medium">{idx + 1}</td>
-                  <td className="px-4 py-3 text-sm">
-                    <a href={row.link} className="text-[#774A67] font-semibold hover:underline">{row.purchaseNo}</a>
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-700">{row.date}</td>
-                  <td className="px-4 py-3 text-sm text-gray-700">{row.supplier}</td>
-                  <td className="px-4 py-3 text-sm text-gray-700">{row.subtotal}</td>
-                  <td className="px-4 py-3 text-sm text-gray-700">{row.netTotal}</td>
-                  <td className="px-4 py-3 text-sm text-gray-700">{row.totalDue}</td>
-                  <td className="px-4 py-3 text-sm">
-                    <span className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-[#8b5cf6]/10 text-[#774A67] border border-[#8b5cf6]/30">{row.status}</span>
-                  </td>
+        <div key="purchases">
+          <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm mt-4">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">#</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">Purchase No</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">Date</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">Supplier</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">Subtotal</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">Net Total</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">Total Due</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-100">
+                {PURCHASES_DATA.map((row, idx) => (
+                  <tr key={`purchases-${row.purchaseNo}`} className="hover:bg-gray-50">
+                    <td className="px-4 py-3 text-sm text-gray-700 font-medium">{idx + 1}</td>
+                    <td className="px-4 py-3 text-sm">
+                      <a href={row.link} className="text-[#774A67] font-semibold hover:underline">{row.purchaseNo}</a>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-700">{row.date}</td>
+                    <td className="px-4 py-3 text-sm text-gray-700">{row.supplier}</td>
+                    <td className="px-4 py-3 text-sm text-gray-700">{row.subtotal}</td>
+                    <td className="px-4 py-3 text-sm text-gray-700">{row.netTotal}</td>
+                    <td className="px-4 py-3 text-sm text-gray-700">{row.totalDue}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       );
     }
     if (activeTab === 2) {
-      // Expenses tab
       return (
-        <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm mt-4">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">#</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">Sub Category</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">Expense Reason</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">Amount</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">Account</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">Date</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">Status</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-100">
-              {EXPENSES_DATA.map((row, idx) => (
-                <tr key={row.subCategory + row.expenseReason} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 text-sm text-gray-700 font-medium">{idx + 1}</td>
-                  <td className="px-4 py-3 text-sm text-gray-700">{row.subCategory}</td>
-                  <td className="px-4 py-3 text-sm">
-                    <a href={row.expenseReasonLink} className="text-[#774A67] font-semibold hover:underline">{row.expenseReason}</a>
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-700">{row.amount}</td>
-                  <td className="px-4 py-3 text-sm text-gray-700">{row.account}</td>
-                  <td className="px-4 py-3 text-sm text-gray-700">{row.date}</td>
-                  <td className="px-4 py-3 text-sm">
-                    <span className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-[#8b5cf6]/10 text-[#774A67] border border-[#8b5cf6]/30">{row.status}</span>
-                  </td>
+        <div key="expenses">
+          <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm mt-4">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">#</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">Sub Category</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">Expense Reason</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">Amount</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">Account</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">Date</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-100">
+                {EXPENSES_DATA.map((row, idx) => (
+                  <tr key={`expenses-${row.subCategory}-${row.expenseReason}`} className="hover:bg-gray-50">
+                    <td className="px-4 py-3 text-sm text-gray-700 font-medium">{idx + 1}</td>
+                    <td className="px-4 py-3 text-sm text-gray-700">{row.subCategory}</td>
+                    <td className="px-4 py-3 text-sm">
+                      <a href={row.expenseReasonLink} className="text-[#774A67] font-semibold hover:underline">{row.expenseReason}</a>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-700">{row.amount}</td>
+                    <td className="px-4 py-3 text-sm text-gray-700">{row.account}</td>
+                    <td className="px-4 py-3 text-sm text-gray-700">{row.date}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       );
     }
     if (activeTab === 3) {
-      // Transactions tab
       return (
-        <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm mt-4">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">#</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">Reason</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">Date</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">Type</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">Account</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">Amount</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">Status</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-100">
-              {TRANSACTIONS_DATA.map((row, idx) => (
-                <tr key={row.reason + row.date + row.type} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 text-sm text-gray-700 font-medium">{idx + 1}</td>
-                  <td className="px-4 py-3 text-sm text-gray-700">{row.reason}</td>
-                  <td className="px-4 py-3 text-sm text-gray-700">{row.date}</td>
-                  <td className="px-4 py-3 text-sm">
-                    <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold border mr-1 ${row.type === 'Debit' ? 'bg-red-100 text-red-700 border-red-200' : 'bg-[#8b5cf6]/10 text-[#774A67] border-[#8b5cf6]/30'}`}>{row.type}</span>
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-700">{row.account}</td>
-                  <td className="px-4 py-3 text-sm text-gray-700">{row.amount}</td>
-                  <td className="px-4 py-3 text-sm">
-                    <span className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-[#8b5cf6]/10 text-[#774A67] border border-[#8b5cf6]/30">{row.status}</span>
-                  </td>
+        <div key="transactions">
+          <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm mt-4">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">#</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">Reason</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">Date</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">Type</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">Account</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">Amount</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-100">
+                {TRANSACTIONS_DATA.map((row, idx) => (
+                  <tr key={`transactions-${row.reason}-${row.date}-${row.type}`} className="hover:bg-gray-50">
+                    <td className="px-4 py-3 text-sm text-gray-700 font-medium">{idx + 1}</td>
+                    <td className="px-4 py-3 text-sm text-gray-700">{row.reason}</td>
+                    <td className="px-4 py-3 text-sm text-gray-700">{row.date}</td>
+                    <td className="px-4 py-3 text-sm">
+                      <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold border mr-1 ${row.type === 'Debit' ? 'bg-red-100 text-red-700 border-red-200' : 'bg-[#8b5cf6]/10 text-[#774A67] border-[#8b5cf6]/30'}`}>{row.type}</span>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-700">{row.account}</td>
+                    <td className="px-4 py-3 text-sm text-gray-700">{row.amount}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       );
     }
