@@ -57,7 +57,9 @@ const SalesInvoices: React.FC = () => {
       try {
         const res = await fetch('https://newhrms.muftaah.com/api/method/alphax_erp.api.sales_invoices.get_sales_invoices', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json'
+          },
           credentials: 'include',
           body: JSON.stringify({}),
         });

@@ -30,7 +30,9 @@ const PaymentDetailsList = () => {
     try {
       const res = await fetch(' https://newhrms.muftaah.com/api/method/alphax_erp.api.payment.get_user_payments', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json'
+        },
         credentials: 'include',
         body: JSON.stringify({ userId }),
       });
@@ -58,17 +60,17 @@ const PaymentDetailsList = () => {
   };
 
   const handleRemoveCard = async (cardId: string) => {
-    const userId = localStorage.getItem('user'); // Ensure userId is always fresh
     console.log("🗑️ Attempting to remove card:", { cardId, userId });
     if (!cardId || !userId) {
       console.error("❌ Missing cardId or userId", { cardId, userId });
       return;
     }
     try {
-      // Call API to remove card
       const res = await fetch(' https://newhrms.muftaah.com/api/method/alphax_erp.api.payment.remove_user_payment', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json'
+        },
         credentials: 'include',
         body: JSON.stringify({ cardName: cardId, userId: userId }),
       });
@@ -105,10 +107,11 @@ const PaymentDetailsList = () => {
     console.log("🔄 Attempting to toggle card status:", { cardId, currentStatus, newStatus });
     
     try {
-      // Call API to update card status
       const res = await fetch(' https://newhrms.muftaah.com/api/method/alphax_erp.api.payment.update_payment_status', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json'
+        },
         credentials: 'include',
         body: JSON.stringify({ cardName: cardId, userId: userId, status: newStatus }),
       });

@@ -6,7 +6,7 @@ export function useSessionCheck() {
 
   useEffect(() => {
     const checkSession = async () => {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('tk');
       console.log('[SessionCheck] Token from localStorage:', token);
       if (!token) {
         console.log('[SessionCheck] No token found, redirecting to login.');
@@ -18,7 +18,7 @@ export function useSessionCheck() {
         const res = await fetch("https://newhrms.muftaah.com/api/method/alphax_erp.api.check_session.check_session", {
           method: "POST",
           headers: {
-            "Authorization": `token ${token}`,
+            "Authorization": `Bearer ${token}`,
             "Content-Type": "application/json"
           },
           credentials: "include"

@@ -17,7 +17,9 @@ const ClientDashboard = () => {
   const daysLeft = 5; // This would typically come from your backend/state management
   
   const [showPaymentList, setShowPaymentList] = useState(false);
+  const [showTrialExpiredModal, setShowTrialExpiredModal] = useState(false);
   const userEmail = localStorage.getItem("user") || "User";
+  console.log("[Dashboard] Retrieved user email from localStorage:", userEmail);
   const profileDropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const handleClientLogout = rootStore(({ handleClientLogout }) => handleClientLogout);
@@ -48,31 +50,71 @@ const ClientDashboard = () => {
       setTrialLoading(true);
       setTrialError(null);
       try {
+        console.log('[TrialInfo] User email:', userEmail);
+        
+        const requestBody = { userId: userEmail };
+        console.log('[TrialInfo] Request body:', requestBody);
+        
         const res = await fetch('https://newhrms.muftaah.com/api/method/alphax_erp.api.user_info.get_user_creation_info', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json'
+          },
           credentials: 'include',
-          body: JSON.stringify({ userId: userEmail }),
+          body: JSON.stringify(requestBody),
         });
-        if (!res.ok) throw new Error('Failed to fetch user info');
+        
+        console.log('[TrialInfo] Response status:', res.status);
+        console.log('[TrialInfo] Response headers:', res.headers);
+        
+        if (!res.ok) {
+          const errorText = await res.text();
+          console.log('[TrialInfo] Error response:', errorText);
+          throw new Error('Failed to fetch user info');
+        }
+        
         const data = await res.json();
+        console.log('[TrialInfo] Response data:', data);
+        
         const creation = data.message?.data?.creation;
         const current_datetime = data.message?.data?.current_datetime;
         if (!creation || !current_datetime) throw new Error('Invalid API response');
+        
+        // Test calculation with the actual data from your API response
         const createdDate = new Date(creation);
         const nowDate = new Date(current_datetime);
         const diffTime = nowDate.getTime() - createdDate.getTime();
         const daysSinceCreation = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        
+        console.log('[TrialInfo] Created date:', createdDate);
+        console.log('[TrialInfo] Current date:', nowDate);
+        console.log('[TrialInfo] Days since creation:', daysSinceCreation);
+        console.log('[TrialInfo] Trial days limit:', TRIAL_DAYS);
+        console.log('[TrialInfo] Is trial expired?', daysSinceCreation >= TRIAL_DAYS);
+        
         setTrialDaysUsed(daysSinceCreation);
         setTrialExpired(daysSinceCreation >= TRIAL_DAYS);
+        
+        // If trial has expired (14 days or more), show modal and redirect to billing management
+        if (daysSinceCreation >= TRIAL_DAYS) {
+          console.log('[TrialInfo] Trial expired, showing modal and redirecting to billing management');
+          setShowTrialExpiredModal(true);
+          // Redirect to billing management after 3 seconds
+          setTimeout(() => {
+            setShowTrialExpiredModal(false);
+            navigate('/clientLogin/billing-management', { replace: true });
+          }, 3000);
+        }
+        
       } catch (err: any) {
+        console.error('[TrialInfo] Error:', err);
         setTrialError(err.message || 'Unknown error');
       } finally {
         setTrialLoading(false);
       }
     };
     if (userEmail) fetchTrialInfo();
-  }, [userEmail]);
+  }, [userEmail, navigate]);
 
   return (
     <div className="relative min-h-screen flex flex-col bg-gradient-to-br from-[#f7f8fa] via-[#f3f4f8] to-[#e9eaf3] dark:from-[#1a1a1f] dark:via-[#23232a] dark:to-[#18181c] overflow-hidden">
@@ -110,19 +152,37 @@ const ClientDashboard = () => {
             className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4"
           >
             {/* Static Trial Period Notification Banner - always below main heading */}
-            {trialLoading ? null : trialError ? (
+            {trialLoading ? (
+              <div className="w-full my-6 p-4 bg-blue-200 text-blue-800 rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between">
+                <span>
+                  <b>Loading trial information...</b>
+                </span>
+              </div>
+            ) : trialError ? (
               <div className="w-full my-6 p-4 bg-red-200 text-red-800 rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between">
                 <span>
                   <b>Trial status error:</b> {trialError}
                 </span>
               </div>
-            ) : trialExpired ? null : (
-              <div className="w-full my-6 p-4 bg-red-200 text-red-800 rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between">
+            ) : trialExpired ? (
+              <div className="w-full my-6 p-4 bg-orange-200 text-orange-800 rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between">
+                <span>
+                  <b>Trial Expired!</b> Your trial period of {TRIAL_DAYS} days has ended. Redirecting to billing management...
+                </span>
+                <button
+                  className="mt-4 sm:mt-0 bg-orange-600 text-white px-4 py-2 rounded font-bold sm:ml-4"
+                  onClick={() => navigate('/clientLogin/billing-management')}
+                >
+                  Go to Billing
+                </button>
+              </div>
+            ) : (
+              <div className="w-full my-6 p-4 bg-yellow-200 text-yellow-800 rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between">
                 <span>
                   <b>You are on trial version!</b> Your trial: <b>{trialDaysUsed} / {TRIAL_DAYS} days used</b>
                 </span>
                 <button
-                  className="mt-4 sm:mt-0 bg-red-600 text-white px-4 py-2 rounded font-bold sm:ml-4"
+                  className="mt-4 sm:mt-0 bg-yellow-600 text-white px-4 py-2 rounded font-bold sm:ml-4"
                   onClick={() => navigate('/clientLogin/billing-management')}
                 >
                   Billing Page
@@ -130,21 +190,6 @@ const ClientDashboard = () => {
               </div>
             )}
           </motion.div>
-          {/* Modal for expired trial */}
-          {trialExpired && !trialLoading && !trialError && (
-            <div className="fixed inset-0 z-[9999] bg-black/50 flex items-center justify-center">
-              <div className="bg-white dark:bg-[#23232a] rounded-2xl p-8 max-w-md mx-4 shadow-2xl text-center">
-                <h2 className="text-2xl font-bold mb-4 text-[#774A67]">Trial Expired</h2>
-                <p className="mb-6 text-gray-700 dark:text-gray-200">Your 14-day trial period has ended. Please subscribe to continue using the platform.</p>
-                <button
-                  className="px-6 py-3 bg-gradient-to-r from-[#774A67] to-[#8b5cf6] text-white rounded-xl shadow-lg hover:shadow-xl hover:from-[#8b5cf6] hover:to-[#774A67] transition-all duration-300 font-semibold text-lg"
-                  onClick={() => navigate('/clientLogin/billing-management')}
-                >
-                  Go to Subscription
-                </button>
-              </div>
-            </div>
-          )}
           {/* Today Summary Tiles */}
           <section className="mb-12">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 drop-shadow-lg bg-gradient-to-r from-[#774A67] to-[#8b5cf6] bg-clip-text text-transparent">
@@ -227,6 +272,37 @@ const ClientDashboard = () => {
               &times;
             </button>
             {/* <PaymentDetailsList /> */}
+          </div>
+        </div>
+      )}
+
+      {/* Trial Expired Modal */}
+      {showTrialExpiredModal && (
+        <div className="fixed inset-0 z-[9999] bg-black/50 flex items-center justify-center">
+          <div className="bg-white dark:bg-[#23232a] rounded-2xl p-8 max-w-md mx-4 shadow-2xl text-center">
+            <div className="mb-6">
+              <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                <FiAlertTriangle className="w-8 h-8 text-red-600 dark:text-red-400" />
+              </div>
+              <h2 className="text-2xl font-bold mb-2 text-[#774A67] dark:text-white">Trial Period Expired</h2>
+              <p className="text-gray-600 dark:text-gray-300 mb-4">
+                Your 14-day trial period has ended. You need to upgrade to continue using the platform.
+              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Redirecting to billing management in a few seconds...
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <button
+                className="px-6 py-3 bg-gradient-to-r from-[#774A67] to-[#8b5cf6] text-white rounded-xl shadow-lg hover:shadow-xl hover:from-[#8b5cf6] hover:to-[#774A67] transition-all duration-300 font-semibold"
+                onClick={() => {
+                  setShowTrialExpiredModal(false);
+                  navigate('/clientLogin/billing-management', { replace: true });
+                }}
+              >
+                Go to Billing Now
+              </button>
+            </div>
           </div>
         </div>
       )}

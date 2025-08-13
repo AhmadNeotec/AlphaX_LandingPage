@@ -23,7 +23,9 @@ const TrialManager: React.FC<TrialManagerProps> = ({ userId }) => {
       try {
         const res = await fetch('https://newhrms.muftaah.com/api/method/alphax_erp.api.user_info.get_user_creation_info', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json'
+          },
           credentials: 'include',
           body: JSON.stringify({ userId }),
         });
@@ -32,12 +34,27 @@ const TrialManager: React.FC<TrialManagerProps> = ({ userId }) => {
         const creation = data.message?.data?.creation;
         const current_datetime = data.message?.data?.current_datetime;
         if (!creation || !current_datetime) throw new Error('Invalid API response');
+        
         const createdDate = new Date(creation);
         const nowDate = new Date(current_datetime);
         const diffTime = nowDate.getTime() - createdDate.getTime();
         const daysSinceCreation = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        
+        console.log('[TrialManager] Created date:', createdDate);
+        console.log('[TrialManager] Current date:', nowDate);
+        console.log('[TrialManager] Days since creation:', daysSinceCreation);
+        console.log('[TrialManager] Trial days limit:', TRIAL_DAYS);
+        
         setTrialInfo({ creation, current_datetime, daysSinceCreation });
-        if (daysSinceCreation >= TRIAL_DAYS) setShowModal(true);
+        
+        // If trial has expired (14 days or more), show modal and redirect
+        if (daysSinceCreation >= TRIAL_DAYS) {
+          setShowModal(true);
+          // Redirect to billing management after 3 seconds
+          setTimeout(() => {
+            window.location.href = '/clientLogin/billing-management';
+          }, 3000);
+        }
       } catch (err: any) {
         setError(err.message || 'Unknown error');
       } finally {

@@ -50,13 +50,15 @@ const PurchaseOrders: React.FC = () => {
   const userId = localStorage.getItem('user');
 
   useEffect(() => {
-    const fetchOrders = async () => {
+    const fetchPurchaseOrders = async () => {
       setLoading(true);
       setError(null);
       try {
         const res = await fetch('https://newhrms.muftaah.com/api/method/alphax_erp.api.purchase_orders.get_user_purchase_orders', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json'
+          },
           credentials: 'include',
           body: JSON.stringify({}),
         });
@@ -73,7 +75,7 @@ const PurchaseOrders: React.FC = () => {
         setLoading(false);
       }
     };
-    if (userId) fetchOrders();
+    if (userId) fetchPurchaseOrders();
     else setError('User not found in localStorage');
   }, [userId]);
 

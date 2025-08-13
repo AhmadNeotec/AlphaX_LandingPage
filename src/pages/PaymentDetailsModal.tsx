@@ -59,7 +59,7 @@ const PaymentDetailsModal: React.FC<PaymentDetailsModalProps> = ({ isOpen, onClo
         const res = await fetch(" https://newhrms.muftaah.com/api/method/alphax_erp.api.payment.save_payment_details", {
           method: "POST",
           headers: {
-            "Content-Type": "application/json",
+            "Content-Type": "application/json"
           },
           credentials: "include",
           body: JSON.stringify({

@@ -27,7 +27,9 @@ export function useUserCards(userId: string | null) {
     try {
       const res = await fetch(' https://newhrms.muftaah.com/api/method/alphax_erp.api.payment.get_user_payments', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json'
+        },
         credentials: 'include',
         body: JSON.stringify({ userId }),
       });

@@ -103,6 +103,9 @@ const SignInForm = ({ loginSuccess, setLoginSuccess }: Props) => {
         } else {
           console.log("Regular user login, redirecting to /clientLogin");
           localStorage.removeItem("isSuperAdmin");
+          localStorage.setItem("user", data.email); // Store user email for dashboard access
+          console.log("Stored user email in localStorage:", data.email);
+          console.log("Stored token in localStorage:", loginData.message.token);
           setLoginSuccess(true);
           clientLogin(loginData.message.token); // Set isLoggedIn to true
           toggleStarted();

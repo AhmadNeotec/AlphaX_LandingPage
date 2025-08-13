@@ -2,7 +2,6 @@ import { rootStore } from "@store/index";
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useNavbar } from '../../../hooks/useNavbar';
 //import ChatGPTModal from '../../ChatGPT/ChatGPTModal';
 //import Module from '../Module';
 //import Industries from '../Industries';
@@ -26,91 +25,21 @@ const Navbar = () => {
   const [activeLink, setActiveLink] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isPricingOpen, setIsPricingOpen] = useState(false);
-  const [navbarConfig, setNavbarConfig] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Fetch navbar configuration directly from API
+  const [navLinks, setNavLinks] = useState(DEFAULT_LINKS);
+  const [loginColor, setLoginColor] = useState(DEFAULT_LOGIN_COLOR);
+  const [getStartedColor, setGetStartedColor] = useState(DEFAULT_GET_STARTED_COLOR);
+
   useEffect(() => {
-    const fetchNavbarConfig = async () => {
-      try {
-        setLoading(true);
-        const res = await fetch('https://newhrms.muftaah.com/api/method/alphax_erp.api.NavbarCMS.get_navbar_config', {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
-        });
-        if (res.ok) {
-          const response = await res.json();
-          if (response.message && response.message.success) {
-            setNavbarConfig(response.message);
-            console.log('Navbar config fetched:', response.message);
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching navbar config:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchNavbarConfig();
-
-    // Listen for navbar updates
-    const handleNavbarUpdate = () => {
-      console.log('Navbar update event received, refreshing...');
-      fetchNavbarConfig();
-    };
-
-    window.addEventListener('navbar-config-updated', handleNavbarUpdate);
-
-    return () => {
-      window.removeEventListener('navbar-config-updated', handleNavbarUpdate);
-    };
+    // Load from localStorage
+    const storedLinks = localStorage.getItem('navbarLinks');
+    const storedLoginColor = localStorage.getItem('navbarLoginColor');
+    const storedGetStartedColor = localStorage.getItem('navbarGetStartedColor');
+    if (storedLinks) setNavLinks(JSON.parse(storedLinks));
+    if (storedLoginColor) setLoginColor(storedLoginColor);
+    if (storedGetStartedColor) setGetStartedColor(storedGetStartedColor);
   }, []);
-
-  // Get values from API response or use defaults
-  const navLinks = navbarConfig?.nav_links || DEFAULT_LINKS;
-  const loginColor = navbarConfig?.button_colors?.login_color || DEFAULT_LOGIN_COLOR;
-  const getStartedColor = navbarConfig?.button_colors?.get_started_color || DEFAULT_GET_STARTED_COLOR;
-  const logoUrl = navbarConfig?.logo_settings?.logo_url || 'src/images/alpha-Photoroom.png';
-  const companyName = navbarConfig?.logo_settings?.company_name || 'ALPHA X';
-  const availableLanguages = navbarConfig?.language_settings || ['EN', 'ARB'];
-  const defaultLanguage = navbarConfig?.default_language || 'EN';
-
-  // Debug logging
-  console.log('Navbar render - navLinks:', navLinks);
-  console.log('Navbar render - navbarConfig:', navbarConfig);
-
-  // Helper function to get the appropriate color for a link
-  const getLinkColor = (link: any) => {
-    // If link has a custom color, return it
-    if (link.color && link.color.trim() !== '') {
-      return link.color;
-    }
-    
-    // Determine which default color to use based on link properties
-    const label = link.label.toLowerCase();
-    
-    // Links that typically use the "Get Started" color (green)
-    if (label.includes('contact') || label.includes('get started') || label.includes('sign up') || label.includes('register')) {
-      return getStartedColor;
-    }
-    
-    // Links that typically use the "Login" color (purple/brown)
-    if (label.includes('login') || label.includes('sign in')) {
-      return loginColor;
-    }
-    
-    // Default to login color for most navigation links
-    return loginColor;
-  };
-
-  // Set default language on mount
-  useEffect(() => {
-    if (defaultLanguage && language !== defaultLanguage) {
-      setLanguage(defaultLanguage);
-    }
-  }, [defaultLanguage, language]);
 
   return (
     <>
@@ -126,18 +55,12 @@ const Navbar = () => {
         {/* Logo */}
         <Link to="/" className="cursor-pointer flex-shrink-0">
           <img 
-            src={logoUrl}
-            alt={`${companyName} Logo`} 
+            //src={alphaLogo} 
+            src="src/images/alpha-Photoroom.png"
+            alt="Alpha X Logo" 
             className="h-14 w-auto"
           />
         </Link>
-
-        {/* Loading indicator */}
-        {loading && (
-          <div className="ml-4 text-xs text-gray-500 animate-pulse">
-            Loading navigation...
-          </div>
-        )}
 
         {/* Mobile Menu Button */}
         <button 
@@ -163,91 +86,90 @@ const Navbar = () => {
 
         {/* Navigation Links - Desktop */}
         <div className="hidden md:flex items-center ml-16 gap-8">
-          {navLinks.map((item: any) => {
-            const linkColor = getLinkColor(item);
-            return (
-              <div key={item.label} className="relative">
-                <Link
-                  to={item.url}
-                  className={`nav-link ${activeLink === item.label ? 'active' : ''} 
-                  relative overflow-hidden group transition-colors flex items-center gap-1 px-4 py-2 rounded-md`}
-                  style={{ 
-                    backgroundColor: linkColor,
-                    color: 'white'
-                  }}
-                  onClick={(e) => {
-                    if (item.label === 'MODULES') {
-                      e.preventDefault();
-                      toggleModules();
-                      return;
+          {navLinks.map((item) => (
+            <div key={item.label} className="relative">
+              <Link
+                to={item.url}
+                className={`nav-link ${activeLink === item.label ? 'active' : ''} 
+                text-[#020303] dark:text-white relative overflow-hidden group
+                transition-colors flex items-center gap-1`}
+                onClick={(e) => {
+                  if (item.label === 'MODULES') {
+                    e.preventDefault();
+                    toggleModules();
+                    return;
+                  }
+                  if (item.label === 'INDUSTRIES') {
+                    e.preventDefault();
+                    toggleIndustries();
+                    return;
+                  }
+                  if (item.label === 'PRICING') {
+                    e.preventDefault();
+                    setIsPricingOpen(!isPricingOpen);
+                    return;
+                  }
+                  if (item.label !== 'PRICING' && item.label !== 'CONTACT US') {
+                    e.preventDefault();
+                    setActiveLink(item.label);
+                    const section = document.getElementById(item.label.toLowerCase().replace(' ', '-'));
+                    if (section) {
+                      section.scrollIntoView({ behavior: 'smooth' });
                     }
-                    if (item.label === 'INDUSTRIES') {
-                      e.preventDefault();
-                      toggleIndustries();
-                      return;
-                    }
-                    if (item.label === 'PRICING') {
-                      e.preventDefault();
-                      setIsPricingOpen(!isPricingOpen);
-                      return;
-                    }
-                    if (item.label !== 'PRICING' && item.label !== 'CONTACT US') {
-                      e.preventDefault();
-                      setActiveLink(item.label);
-                      const section = document.getElementById(item.label.toLowerCase().replace(' ', '-'));
-                      if (section) {
-                        section.scrollIntoView({ behavior: 'smooth' });
-                      }
-                    }
-                  }}
-                >
-                  <span className="relative z-10 transition-colors duration-300">
-                    {item.label}
-                  </span>
-                  {(item as any).hasDropdown && (
-                    <motion.svg 
-                      width="12" 
-                      height="12" 
-                      viewBox="0 0 24 24" 
-                      fill="none"
-                      animate={{ rotate: isPricingOpen ? 180 : 0 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <path d="M6 9L12 15L18 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </motion.svg>
-                  )}
-                </Link>
-                
-                {/* Pricing Dropdown */}
-                {item.label === 'PRICING' && isPricingOpen && (
-                  <motion.div
-                    className="absolute top-full mt-2 py-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg z-50"
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
+                  }
+                }}
+              >
+                <span className={`relative z-10 transition-colors duration-300 ${
+                  activeLink === item.label ? 'text-white' : 'group-hover:text-white'
+                }`}>{item.label}</span>
+                {item.hasDropdown && (
+                  <motion.svg 
+                    width="12" 
+                    height="12" 
+                    viewBox="0 0 24 24" 
+                    fill="none"
+                    animate={{ rotate: isPricingOpen ? 180 : 0 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <Link
-                      to="/pricinglist"
-                      className="block px-4 py-2 text-[15px] font-['Outfit'] tracking-wide
-                      hover:bg-[#774A67] hover:text-white dark:hover:bg-[#774A67] transition-colors"
-                      onClick={() => setIsPricingOpen(false)}
-                    >
-                      Module Pricing
-                    </Link>
-                    <Link
-                      to="/pricing"
-                      className="block px-4 py-2 text-[15px] font-['Outfit'] tracking-wide
-                      hover:bg-[#774A67] hover:text-white dark:hover:bg-[#774A67] transition-colors"
-                      onClick={() => setIsPricingOpen(false)}
-                    >
-                      Plan Pricing
-                    </Link>
-                  </motion.div>
+                    <path d="M6 9L12 15L18 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </motion.svg>
                 )}
-              </div>
-            );
-          })}
+                <motion.div
+                  className={`absolute inset-0 bg-[#774A67] transform ${
+                    activeLink === item.label ? 'translate-y-0' : '-translate-y-full group-hover:translate-y-0'
+                  } transition-transform duration-300`}
+                />
+              </Link>
+              
+              {/* Pricing Dropdown */}
+              {item.label === 'PRICING' && isPricingOpen && (
+                <motion.div
+                  className="absolute top-full mt-2 py-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg z-50"
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Link
+                    to="/pricinglist"
+                    className="block px-4 py-2 text-[15px] font-['Outfit'] tracking-wide
+                    hover:bg-[#774A67] hover:text-white dark:hover:bg-[#774A67] transition-colors"
+                    onClick={() => setIsPricingOpen(false)}
+                  >
+                    Module Pricing
+                  </Link>
+                  <Link
+                    to="/pricing"
+                    className="block px-4 py-2 text-[15px] font-['Outfit'] tracking-wide
+                    hover:bg-[#774A67] hover:text-white dark:hover:bg-[#774A67] transition-colors"
+                    onClick={() => setIsPricingOpen(false)}
+                  >
+                    Plan Pricing
+                  </Link>
+                </motion.div>
+              )}
+            </div>
+          ))}
         </div>
 
         {/* Right Side - Language & Buttons */}
@@ -278,7 +200,7 @@ const Navbar = () => {
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.2 }}
                 >
-                  {availableLanguages.map((lang: any) => (
+                  {['EN', 'ARB'].map((lang) => (
                     <motion.button
                       key={lang}
                       className="w-full px-4 py-2 text-left text-[15px] font-['Outfit'] tracking-wide
@@ -346,7 +268,7 @@ const Navbar = () => {
             >
               <div className="flex flex-col p-4 space-y-4">
                 {/* Mobile Navigation Links */}
-                {navLinks.map((item: any) => (
+                {navLinks.map((item) => (
                   <div key={item.label}>
                     {item.label === 'PRICING' ? (
                       <>
@@ -379,11 +301,11 @@ const Navbar = () => {
                     ) : (
                       <Link
                         to={item.url}
-                        className={`text-lg font-medium py-2 px-4 rounded-md transition-colors`}
-                        style={{
-                          backgroundColor: getLinkColor(item),
-                          color: 'white'
-                        }}
+                        className={`text-lg font-medium py-2 px-4 rounded-md ${
+                          activeLink === item.label 
+                            ? 'bg-[#774A67] text-white' 
+                            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                        }`}
                         onClick={(e) => {
                           if (item.label === 'MODULES') {
                             e.preventDefault();
@@ -424,23 +346,16 @@ const Navbar = () => {
                     value={language}
                     onChange={(e) => setLanguage(e.target.value)}
                   >
-                    {availableLanguages.map((lang: any) => (
-                      <option key={lang} value={lang}>
-                        {lang === 'EN' ? 'English' : lang === 'ARB' ? 'Arabic' : lang}
-                      </option>
-                    ))}
+                    <option value="EN">English</option>
+                    <option value="ARB">Arabic</option>
                   </select>
                 </div>
 
                 {/* Mobile Buttons */}
                 <div className="flex flex-col space-y-4 mt-4">
                   <button
-                    className="w-full py-3 px-4 border-2 rounded-md font-semibold transition-colors"
-                    style={{ 
-                      color: loginColor, 
-                      borderColor: loginColor,
-                      backgroundColor: 'transparent'
-                    }}
+                    className="w-full py-3 px-4 text-[#774A67] border-2 border-[#774A67] rounded-md 
+                    font-semibold hover:bg-[#774A67] hover:text-white transition-colors"
                     onClick={() => {
                       toggleStarted();
                       setIsMobileMenuOpen(false);
@@ -449,8 +364,8 @@ const Navbar = () => {
                     LOGIN
                   </button>
                   <button
-                    className="w-full py-3 px-4 text-white rounded-md font-semibold transition-colors"
-                    style={{ backgroundColor: getStartedColor }}
+                    className="w-full py-3 px-4 bg-[#40B93C] text-white rounded-md font-semibold
+                    hover:bg-[#774A67] transition-colors"
                     onClick={() => {
                       navigate('/signup');
                       setIsMobileMenuOpen(false);
@@ -468,4 +383,4 @@ const Navbar = () => {
   );
 };
 
-export default Navbar;
+export default Navbar; 
