@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { withApiAuthHeaders } from '@api/authHeaders';
 
 const userEmail = localStorage.getItem('user') || 'User';
 
@@ -46,12 +47,10 @@ const Profile: React.FC = () => {
         newPassword,
       });
       const response = await fetch(
-        "https://newhrms.muftaah.com/api/method/alphax_erp.api.change_password.change_user_password",
+        "https://test.neotec.ai/api/method/alphax_erp.api.change_password.change_user_password",
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: withApiAuthHeaders(),
           body: JSON.stringify({
             userId: userEmail,
             newPassword,

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { withApiAuthHeaders } from '@api/authHeaders';
 import Navbar from '../components/sections/Navbar';
 import Footer from '../components/sections/Footer';
 
@@ -43,9 +44,9 @@ const PricinglistPage: React.FC = () => {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch('https://newhrms.muftaah.com/api/method/alphax_erp.api.ModulePricing.get_module_pricing', {
+        const res = await fetch('https://test.neotec.ai/api/method/alphax_erp.api.ModulePricing.get_module_pricing', {
           method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
+          headers: withApiAuthHeaders(),
         });
         if (!res.ok) throw new Error('Failed to fetch pricing data');
         const data = await res.json();

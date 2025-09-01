@@ -15,7 +15,7 @@ export function useSessionCheck() {
         return;
       }
       try {
-        const res = await fetch("https://newhrms.muftaah.com/api/method/alphax_erp.api.check_session.check_session", {
+        const res = await fetch("https://test.neotec.ai/api/method/alphax_erp.api.check_session.check_session", {
           method: "POST",
           headers: {
             "Authorization": `Bearer ${token}`,

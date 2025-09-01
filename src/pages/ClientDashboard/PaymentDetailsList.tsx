@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { FiAlertTriangle, FiRefreshCw } from 'react-icons/fi';
 import { useState, useEffect } from 'react';
+import { withApiAuthHeaders } from '@api/authHeaders';
 import PaymentDetailsModal from '../PaymentDetailsModal';
 import { useNavigate } from 'react-router-dom';
 import React from 'react';
@@ -28,11 +29,9 @@ const PaymentDetailsList = () => {
   const fetchPayments = async () => {
     setLoading(true);
     try {
-      const res = await fetch(' https://newhrms.muftaah.com/api/method/alphax_erp.api.payment.get_user_payments', {
+      const res = await fetch(' https://test.neotec.ai/api/method/alphax_erp.api.payment.get_user_payments', {
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json'
-        },
+        headers: withApiAuthHeaders(),
         credentials: 'include',
         body: JSON.stringify({ userId }),
       });
@@ -66,11 +65,9 @@ const PaymentDetailsList = () => {
       return;
     }
     try {
-      const res = await fetch(' https://newhrms.muftaah.com/api/method/alphax_erp.api.payment.remove_user_payment', {
+      const res = await fetch(' https://test.neotec.ai/api/method/alphax_erp.api.payment.remove_user_payment', {
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json'
-        },
+        headers: withApiAuthHeaders(),
         credentials: 'include',
         body: JSON.stringify({ cardName: cardId, userId: userId }),
       });
@@ -107,11 +104,9 @@ const PaymentDetailsList = () => {
     console.log("🔄 Attempting to toggle card status:", { cardId, currentStatus, newStatus });
     
     try {
-      const res = await fetch(' https://newhrms.muftaah.com/api/method/alphax_erp.api.payment.update_payment_status', {
+      const res = await fetch(' https://test.neotec.ai/api/method/alphax_erp.api.payment.update_payment_status', {
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json'
-        },
+        headers: withApiAuthHeaders(),
         credentials: 'include',
         body: JSON.stringify({ cardName: cardId, userId: userId, status: newStatus }),
       });

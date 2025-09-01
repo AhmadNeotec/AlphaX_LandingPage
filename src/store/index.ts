@@ -129,10 +129,38 @@ export const rootStore = create(
       */
 
       handleClientLogout: () => {
-        localStorage.setItem("in", "false");
-        localStorage.removeItem("tk");
-        localStorage.removeItem("man");
-        return set(() => ({ data: INIT_DATA }));
+        // Clear local and session storage
+        try {
+          localStorage.setItem("in", "false");
+          localStorage.removeItem("tk");
+          localStorage.removeItem("man");
+          localStorage.removeItem("loginSuccess");
+          sessionStorage.clear();
+        } catch (_) {}
+
+        // Attempt to clear runtime caches
+        try {
+          if (typeof caches !== 'undefined') {
+            caches.keys().then((keys) => keys.forEach((k) => caches.delete(k)));
+          }
+        } catch (_) {}
+
+        // Unregister service workers if any
+        try {
+          if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then((regs) => regs.forEach((reg) => reg.unregister()));
+          }
+        } catch (_) {}
+
+        // Reset in-memory state
+        set(() => ({ data: INIT_DATA }));
+
+        // Hard refresh to home page
+        try {
+          window.location.replace('/');
+        } catch (_) {
+          window.location.reload();
+        }
       },
 
       toggleModules: () =>

@@ -1,4 +1,5 @@
 import { rootStore } from "@store/index";
+import { withApiAuthHeaders } from "@api/authHeaders";
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
@@ -35,15 +36,17 @@ const Navbar = () => {
     const fetchNavbarConfig = async () => {
       try {
         setLoading(true);
-        const res = await fetch('https://newhrms.muftaah.com/api/method/alphax_erp.api.NavbarCMS.get_navbar_config', {
+        const res = await fetch('https://test.neotec.ai/api/method/alphax_erp.api.NavbarCMS.get_navbar_config', {
           method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
+          headers: withApiAuthHeaders(),
         });
         if (res.ok) {
           const response = await res.json();
           if (response.message && response.message.success) {
             setNavbarConfig(response.message);
             console.log('Navbar config fetched:', response.message);
+            console.log('Language settings from API:', response.message.language_settings);
+            console.log('Default language from API:', response.message.default_language);
           }
         }
       } catch (error) {
@@ -74,12 +77,25 @@ const Navbar = () => {
   const getStartedColor = navbarConfig?.button_colors?.get_started_color || DEFAULT_GET_STARTED_COLOR;
   const logoUrl = navbarConfig?.logo_settings?.logo_url || 'src/images/alpha-Photoroom.png';
   const companyName = navbarConfig?.logo_settings?.company_name || 'ALPHA X';
-  const availableLanguages = navbarConfig?.language_settings || ['EN', 'ARB'];
-  const defaultLanguage = navbarConfig?.default_language || 'EN';
+  
+  // Process language settings - handle both object and string formats
+  const rawLanguages = navbarConfig?.language_settings || ['EN', 'ARB'];
+  const availableLanguages = Array.isArray(rawLanguages) ? rawLanguages.map(lang => {
+    if (typeof lang === 'string') return lang;
+    if (lang && typeof lang === 'object' && lang.language_code) return lang.language_code;
+    return 'EN'; // fallback
+  }) : ['EN', 'ARB'];
+  
+  const rawDefaultLanguage = navbarConfig?.default_language || 'EN';
+  const defaultLanguage = typeof rawDefaultLanguage === 'string' ? rawDefaultLanguage : 
+    (rawDefaultLanguage?.language_code || 'EN');
 
   // Debug logging
   console.log('Navbar render - navLinks:', navLinks);
   console.log('Navbar render - navbarConfig:', navbarConfig);
+  console.log('Navbar render - rawLanguages:', rawLanguages);
+  console.log('Navbar render - availableLanguages:', availableLanguages);
+  console.log('Navbar render - defaultLanguage:', defaultLanguage);
 
   // Helper function to get the appropriate color for a link
   const getLinkColor = (link: any) => {
@@ -111,6 +127,21 @@ const Navbar = () => {
       setLanguage(defaultLanguage);
     }
   }, [defaultLanguage, language]);
+
+  // Close language dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (isLangOpen && !target.closest('.language-selector')) {
+        setIsLangOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isLangOpen]);
 
   return (
     <>
@@ -253,13 +284,16 @@ const Navbar = () => {
         {/* Right Side - Language & Buttons */}
         <div className="hidden md:flex items-center gap-6 ml-auto">
           {/* Language Selector */}
-          <div className="flex items-center relative">
+          <div className="flex items-center relative language-selector">
             <motion.button
               className="flex items-center gap-1.5 cursor-pointer px-3 py-1.5 rounded-md
               hover:bg-[#774A67] hover:text-white dark:hover:bg-[#774A67] transition-colors"
-              onClick={() => setIsLangOpen(!isLangOpen)}
+              onClick={() => {
+                console.log('Language button clicked, current state:', isLangOpen);
+                setIsLangOpen(!isLangOpen);
+              }}
             >
-              <span className="text-[15px] font-medium font-['Outfit'] tracking-wider">{language}</span>
+              <span className="text-[15px] font-medium font-['Outfit'] tracking-wider">{typeof language === 'string' ? language : 'EN'}</span>
               <motion.svg 
                 width="12" height="12" viewBox="0 0 24 24" fill="none" 
                 animate={{ rotate: isLangOpen ? 180 : 0 }}
@@ -272,26 +306,38 @@ const Navbar = () => {
             <AnimatePresence>
               {isLangOpen && (
                 <motion.div
-                  className="absolute top-full mt-2 py-2 w-24 bg-white dark:bg-gray-800 rounded-md shadow-lg"
+                  className="absolute top-full mt-2 py-2 w-24 bg-white dark:bg-gray-800 rounded-md shadow-lg z-[9999] border border-gray-200 dark:border-gray-600"
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.2 }}
+                  style={{ 
+                    position: 'fixed',
+                    zIndex: 9999,
+                    minWidth: '96px'
+                  }}
+                  onAnimationStart={() => console.log('Language dropdown animation started')}
+                  onAnimationComplete={() => console.log('Language dropdown animation completed')}
                 >
-                  {availableLanguages.map((lang: any) => (
-                    <motion.button
-                      key={lang}
-                      className="w-full px-4 py-2 text-left text-[15px] font-['Outfit'] tracking-wide
-                      hover:bg-[#774A67] hover:text-white dark:hover:bg-[#774A67] transition-colors"
-                      onClick={() => {
-                        setLanguage(lang);
-                        setIsLangOpen(false);
-                      }}
-                      whileHover={{ x: 5 }}
-                    >
-                      {lang}
-                    </motion.button>
-                  ))}
+                  {availableLanguages.map((lang: any) => {
+                    // Ensure lang is a valid string
+                    const langText = typeof lang === 'string' ? lang : String(lang || 'EN');
+                    return (
+                      <motion.button
+                        key={langText}
+                        className="w-full px-4 py-2 text-left text-[15px] font-['Outfit'] tracking-wide
+                        hover:bg-[#774A67] hover:text-white dark:hover:bg-[#774A67] transition-colors rounded-sm"
+                        onClick={() => {
+                          console.log('Language selected:', langText);
+                          setLanguage(langText);
+                          setIsLangOpen(false);
+                        }}
+                        whileHover={{ x: 5 }}
+                      >
+                        {langText}
+                      </motion.button>
+                    );
+                  })}
                 </motion.div>
               )}
             </AnimatePresence>

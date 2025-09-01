@@ -1,105 +1,64 @@
-import React from 'react';
-import { FaMoneyBillWave, FaFileInvoice, FaCashRegister, FaAd, FaHandHoldingUsd, FaChartLine, FaUserShield, FaFileAlt, FaUsers, FaBoxes, FaBoxOpen, FaShoppingCart, FaSyncAlt, FaTruck, FaClipboardList, FaCogs, FaBook, FaRegListAlt, FaRegBuilding, FaRegClock, FaTasks, FaMoneyCheckAlt, FaRegAddressBook, FaRegCalendarAlt, FaRegCreditCard, FaRegChartBar, FaRegEnvelope, FaFileContract } from 'react-icons/fa';
-import { HiOutlineUserGroup, HiOutlineUser, HiOutlineCreditCard, HiOutlineClipboardList } from 'react-icons/hi';
+import React, { useState } from 'react';
+import {
+  FaMoneyBillWave, FaFileInvoice, FaCashRegister, FaAd, FaHandHoldingUsd,
+  FaChartLine, FaUserShield, FaFileAlt, FaUsers, FaBoxes, FaBoxOpen,
+  FaShoppingCart, FaSyncAlt, FaTruck, FaClipboardList, FaCogs, FaBook,
+  FaRegListAlt, FaRegBuilding, FaRegClock, FaTasks, FaMoneyCheckAlt,
+  FaRegAddressBook, FaRegCalendarAlt, FaRegCreditCard, FaRegChartBar,
+  FaRegEnvelope, FaFileContract
+} from 'react-icons/fa';
+import {
+  HiOutlineUserGroup, HiOutlineUser, HiOutlineCreditCard, HiOutlineClipboardList
+} from 'react-icons/hi';
 import { rootStore } from '@store/index';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
-const modules = [
-  [
-    {
-      title: 'Sales',
-      items: [
-        { label: 'Sales', icon: <FaMoneyBillWave /> },
-        { label: 'Invoicing', icon: <FaFileInvoice /> },
-        { label: 'POS', icon: <FaCashRegister /> },
-        { label: 'Offers', icon: <FaAd /> },
-        { label: 'Installments', icon: <FaHandHoldingUsd /> },
-        { label: 'Sales Commission', icon: <FaChartLine /> },
-        { label: 'Insurance Management', icon: <FaUserShield /> },
-        { label: 'KSA E-Invoice Software', icon: <FaFileAlt /> },
-        { label: 'EGP E-Invoice Software', icon: <FaFileAlt /> },
-        { label: 'JO E-Invoice Software', icon: <FaFileAlt /> },
-      ],
-    },
-    {
-      title: 'Clients',
-      items: [
-        { label: 'Client Management', icon: <HiOutlineUserGroup /> },
-        { label: 'Client Follow-Up', icon: <HiOutlineUser /> },
-        { label: 'Loyalty Points', icon: <HiOutlineCreditCard /> },
-        { label: 'Points and Credits', icon: <HiOutlineClipboardList /> },
-        { label: 'Memberships', icon: <HiOutlineUser /> },
-      ],
-    },
-    {
-      title: 'Inventory',
-      items: [
-        { label: 'Inventory Management', icon: <FaBoxes /> },
-        { label: 'Product Management', icon: <FaBoxOpen /> },
-        { label: 'Purchases', icon: <FaShoppingCart /> },
-        { label: 'Purchase Cycle', icon: <FaSyncAlt /> },
-        { label: 'Suppliers', icon: <FaTruck /> },
-        { label: 'Requisitions', icon: <FaClipboardList /> },
-        { label: 'Stocktaking', icon: <FaCogs /> },
-        { label: 'Manufacturing Management Software', icon: <FaCogs /> },
-        { label: 'Manufacturing Orders Management Software', icon: <FaCogs /> },
-      ],
-    },
-  ],
-  [
-    {
-      title: 'Accounting',
-      items: [
-        { label: 'Expenses', icon: <FaMoneyBillWave /> },
-        { label: 'General Accounting', icon: <FaBook /> },
-        { label: 'Chart of Accounts', icon: <FaRegListAlt /> },
-        { label: 'Asset Management', icon: <FaRegBuilding /> },
-        { label: 'Cost Centers', icon: <FaRegChartBar /> },
-        { label: 'Cheque Cycle', icon: <FaRegCreditCard /> },
-      ],
-    },
-    {
-      title: 'HRM',
-      items: [
-        { label: 'Human Resources Management', icon: <FaUsers /> },
-        { label: 'Organizational Structure', icon: <FaRegAddressBook /> },
-        { label: 'Attendance and Leave management', icon: <FaRegCalendarAlt /> },
-        { label: 'Contracts', icon: <FaFileContract /> },
-        { label: 'Payroll', icon: <FaMoneyCheckAlt /> },
-        { label: 'Requests', icon: <FaRegEnvelope /> },
-      ],
-    },
-    {
-      title: 'Operations',
-      items: [
-        { label: 'Operations', icon: <FaCogs /> },
-        { label: 'Work Orders', icon: <FaTasks /> },
-        { label: 'Booking Management', icon: <FaRegCalendarAlt /> },
-        { label: 'Rental and Unit Management', icon: <FaRegBuilding /> },
-        { label: 'Time Tracking', icon: <FaRegClock /> },
-      ],
-    },
-  ],
-];
-
-const sidebarLinks = [
-  'Home',
-  'Industries',
-  'Features',
-  'Pricing',
-  'Help',
-];
-const moreLinks = [
- 
-  'Additional services',
-  'About AlphaX',
- 
-  'Contact Us',
- 
-];
-
-const Module = () => {
+const Module: React.FC = () => {
   const toggleModules = rootStore(({ toggleModules }) => toggleModules);
+  const navigate = useNavigate();
+  const [pricingOpen, setPricingOpen] = useState(false);
+
+  // Universal navigation helper:
+  // 1) Use react-router navigate
+  // 2) Close modules overlay
+  // 3) If the path didn't apply (some router setups) fallback to full-page load
+  const handleNav = (path: string) => {
+    // Normalize path to string starting with '/'
+    const normalized = path.startsWith('/') ? path : `/${path}`;
+    try {
+      // Attempt SPA navigation
+      navigate(normalized);
+    } catch (e) {
+      // if navigate throws for some reason, fallback to full load
+      window.location.href = normalized;
+      return;
+    }
+
+    // Close the modules overlay
+    try {
+      toggleModules();
+    } catch (e) {
+      /* ignore if toggleModules not callable */
+    }
+
+    // After short delay, if location didn't change (blank route), force reload to the path
+    setTimeout(() => {
+      // compare lower-case to avoid case issues
+      if (window.location.pathname.toLowerCase() !== normalized.toLowerCase()) {
+        // fallback: full page load (forces server to serve the path)
+        window.location.href = normalized;
+      }
+    }, 150);
+  };
+
+  const sidebarLinks = [
+    { label: 'Home', path: '/' },
+    // Use routes consistent with your router; try both lowercase and PascalCase if needed.
+    { label: 'Industries', path: '/industries' }, // fallback will force full load if SPA route missing
+    // Pricing will be handled as dropdown below
+    { label: 'Contact Us', path: '/contact' },
+  ];
+
   return (
     <div className="fixed inset-0 z-[999] bg-white flex flex-row">
       {/* Background gradient and blobs */}
@@ -113,109 +72,210 @@ const Module = () => {
           <path fill="#3b82f6" d="M60,-70C75,-60,80,-35,75,-15C70,5,55,20,40,35C25,50,10,65,-10,70C-30,75,-60,70,-70,55C-80,40,-70,15,-60,-5C-50,-25,-40,-40,-25,-55C-10,-70,10,-80,30,-75C50,-70,60,-80,60,-70Z" transform="translate(100 100)" />
         </svg>
       </div>
+
+      {/* Main content (modules grid) */}
       <div className="flex-1 flex flex-col justify-start items-start h-full relative z-10">
         <div className="w-full h-full overflow-y-auto">
-          <div className="grid grid-cols-3 grid-rows-2 gap-y-8 w-full" style={{minHeight: '600px'}}>
+          <div className="grid grid-cols-3 grid-rows-2 gap-y-8 w-full" style={{ minHeight: '600px' }}>
             {/* Sales */}
             <div className="p-8 flex flex-col">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2 text-[#232F3E]">Sales <span className="text-[#774A67]">&rarr;</span></h2>
+              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2 text-[#232F3E]">
+                Sales <span className="text-[#774A67]">&rarr;</span>
+              </h2>
               <ul className="space-y-3">
-                <li className="flex items-center gap-3"><span className="inline-block w-8 h-8 bg-[#774A67]/10 rounded-lg flex items-center justify-center text-[#774A67] text-xl"><FaMoneyBillWave /></span><Link to="/Sales/Sales" onClick={toggleModules} className="text-base font-medium text-[#232F3E] hover:text-[#774A67]">Sales</Link></li>
-                <li className="flex items-center gap-3"><span className="inline-block w-8 h-8 bg-[#774A67]/10 rounded-lg flex items-center justify-center text-[#774A67] text-xl"><FaFileInvoice /></span><Link to="/Sales/Invoicing" onClick={toggleModules} className="text-base font-medium text-[#232F3E] hover:text-[#774A67]">Invoicing</Link></li>
-                <li className="flex items-center gap-3"><span className="inline-block w-8 h-8 bg-[#774A67]/10 rounded-lg flex items-center justify-center text-[#774A67] text-xl"><FaCashRegister /></span><Link to="/Sales/POS" onClick={toggleModules} className="text-base font-medium text-[#232F3E] hover:text-[#774A67]">POS</Link></li>
-                <li className="flex items-center gap-3"><span className="inline-block w-8 h-8 bg-[#774A67]/10 rounded-lg flex items-center justify-center text-[#774A67] text-xl"><FaAd /></span><Link to="/Sales/Offers" onClick={toggleModules} className="text-base font-medium text-[#232F3E] hover:text-[#774A67]">Offers</Link></li>
-                <li className="flex items-center gap-3"><span className="inline-block w-8 h-8 bg-[#774A67]/10 rounded-lg flex items-center justify-center text-[#774A67] text-xl"><FaHandHoldingUsd /></span><Link to="/Sales/Installments" onClick={toggleModules} className="text-base font-medium text-[#232F3E] hover:text-[#774A67]">Installments</Link></li>
-                <li className="flex items-center gap-3"><span className="inline-block w-8 h-8 bg-[#774A67]/10 rounded-lg flex items-center justify-center text-[#774A67] text-xl"><FaChartLine /></span><Link to="/Sales/SalesCommission" onClick={toggleModules} className="text-base font-medium text-[#232F3E] hover:text-[#774A67]">Sales Commission</Link></li>
-                <li className="flex items-center gap-3"><span className="inline-block w-8 h-8 bg-[#774A67]/10 rounded-lg flex items-center justify-center text-[#774A67] text-xl"><FaUserShield /></span><Link to="/Sales/InsuranceManagement" onClick={toggleModules} className="text-base font-medium text-[#232F3E] hover:text-[#774A67]">Insurance Management</Link></li>
+                <li className="flex items-center gap-3">
+                  <span className="inline-block w-8 h-8 bg-[#774A67]/10 rounded-lg flex items-center justify-center text-[#774A67] text-xl"><FaMoneyBillWave /></span>
+                  <Link to="/Sales/Sales" onClick={() => handleNav('/Sales/Sales')} className="text-base font-medium text-[#232F3E] hover:text-[#774A67]">Sales</Link>
+                </li>
+                <li className="flex items-center gap-3">
+                  <span className="inline-block w-8 h-8 bg-[#774A67]/10 rounded-lg flex items-center justify-center text-[#774A67] text-xl"><FaFileInvoice /></span>
+                  <Link to="/Sales/Invoicing" onClick={() => handleNav('/Sales/Invoicing')} className="text-base font-medium text-[#232F3E] hover:text-[#774A67]">Invoicing</Link>
+                </li>
+                <li className="flex items-center gap-3">
+                  <span className="inline-block w-8 h-8 bg-[#774A67]/10 rounded-lg flex items-center justify-center text-[#774A67] text-xl"><FaCashRegister /></span>
+                  <Link to="/Sales/POS" onClick={() => handleNav('/Sales/POS')} className="text-base font-medium text-[#232F3E] hover:text-[#774A67]">POS</Link>
+                </li>
+                <li className="flex items-center gap-3">
+                  <span className="inline-block w-8 h-8 bg-[#774A67]/10 rounded-lg flex items-center justify-center text-[#774A67] text-xl"><FaAd /></span>
+                  <Link to="/Sales/Offers" onClick={() => handleNav('/Sales/Offers')} className="text-base font-medium text-[#232F3E] hover:text-[#774A67]">Offers</Link>
+                </li>
+                <li className="flex items-center gap-3">
+                  <span className="inline-block w-8 h-8 bg-[#774A67]/10 rounded-lg flex items-center justify-center text-[#774A67] text-xl"><FaHandHoldingUsd /></span>
+                  <Link to="/Sales/Installments" onClick={() => handleNav('/Sales/Installments')} className="text-base font-medium text-[#232F3E] hover:text-[#774A67]">Installments</Link>
+                </li>
+                <li className="flex items-center gap-3">
+                  <span className="inline-block w-8 h-8 bg-[#774A67]/10 rounded-lg flex items-center justify-center text-[#774A67] text-xl"><FaChartLine /></span>
+                  <Link to="/Sales/SalesCommission" onClick={() => handleNav('/Sales/SalesCommission')} className="text-base font-medium text-[#232F3E] hover:text-[#774A67]">Sales Commission</Link>
+                </li>
+                <li className="flex items-center gap-3">
+                  <span className="inline-block w-8 h-8 bg-[#774A67]/10 rounded-lg flex items-center justify-center text-[#774A67] text-xl"><FaUserShield /></span>
+                  <Link to="/Sales/InsuranceManagement" onClick={() => handleNav('/Sales/InsuranceManagement')} className="text-base font-medium text-[#232F3E] hover:text-[#774A67]">Insurance Management</Link>
+                </li>
               </ul>
             </div>
+
             {/* Clients */}
             <div className="p-8 flex flex-col">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2 text-[#232F3E]">Clients <span className="text-[#774A67]">&rarr;</span></h2>
+              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2 text-[#232F3E]">
+                Clients <span className="text-[#774A67]">&rarr;</span>
+              </h2>
               <ul className="space-y-3">
-                <li className="flex items-center gap-3"><span className="inline-block w-8 h-8 bg-[#774A67]/10 rounded-lg flex items-center justify-center text-[#774A67] text-xl"><HiOutlineUserGroup /></span><Link to="/Clients/ClientManagement" onClick={toggleModules} className="text-base font-medium text-[#232F3E] hover:text-[#774A67]">Client Management</Link></li>
-                <li className="flex items-center gap-3"><span className="inline-block w-8 h-8 bg-[#774A67]/10 rounded-lg flex items-center justify-center text-[#774A67] text-xl"><HiOutlineUser /></span><Link to="/Clients/ClientFollowUp" onClick={toggleModules} className="text-base font-medium text-[#232F3E] hover:text-[#774A67]">Client Follow-Up</Link></li>
-                <li className="flex items-center gap-3"><span className="inline-block w-8 h-8 bg-[#774A67]/10 rounded-lg flex items-center justify-center text-[#774A67] text-xl"><HiOutlineCreditCard /></span><Link to="/Clients/LoyaltyPoints" onClick={toggleModules} className="text-base font-medium text-[#232F3E] hover:text-[#774A67]">Loyalty Points</Link></li>
-                <li className="flex items-center gap-3"><span className="inline-block w-8 h-8 bg-[#774A67]/10 rounded-lg flex items-center justify-center text-[#774A67] text-xl"><HiOutlineClipboardList /></span><Link to="/Clients/PointsAndCredits" onClick={toggleModules} className="text-base font-medium text-[#232F3E] hover:text-[#774A67]">Points and Credits</Link></li>
-                <li className="flex items-center gap-3"><span className="inline-block w-8 h-8 bg-[#774A67]/10 rounded-lg flex items-center justify-center text-[#774A67] text-xl"><HiOutlineUser /></span><Link to="/Clients/Memberships" onClick={toggleModules} className="text-base font-medium text-[#232F3E] hover:text-[#774A67]">Memberships</Link></li>
+                <li className="flex items-center gap-3">
+                  <span className="inline-block w-8 h-8 bg-[#774A67]/10 rounded-lg flex items-center justify-center text-[#774A67] text-xl"><HiOutlineUserGroup /></span>
+                  <Link to="/Clients/ClientManagement" onClick={() => handleNav('/Clients/ClientManagement')} className="text-base font-medium text-[#232F3E] hover:text-[#774A67]">Client Management</Link>
+                </li>
+                <li className="flex items-center gap-3">
+                  <span className="inline-block w-8 h-8 bg-[#774A67]/10 rounded-lg flex items-center justify-center text-[#774A67] text-xl"><HiOutlineUser /></span>
+                  <Link to="/Clients/ClientFollowUp" onClick={() => handleNav('/Clients/ClientFollowUp')} className="text-base font-medium text-[#232F3E] hover:text-[#774A67]">Client Follow-Up</Link>
+                </li>
+                <li className="flex items-center gap-3">
+                  <span className="inline-block w-8 h-8 bg-[#774A67]/10 rounded-lg flex items-center justify-center text-[#774A67] text-xl"><HiOutlineCreditCard /></span>
+                  <Link to="/Clients/LoyaltyPoints" onClick={() => handleNav('/Clients/LoyaltyPoints')} className="text-base font-medium text-[#232F3E] hover:text-[#774A67]">Loyalty Points</Link>
+                </li>
+                <li className="flex items-center gap-3">
+                  <span className="inline-block w-8 h-8 bg-[#774A67]/10 rounded-lg flex items-center justify-center text-[#774A67] text-xl"><HiOutlineClipboardList /></span>
+                  <Link to="/Clients/PointsAndCredits" onClick={() => handleNav('/Clients/PointsAndCredits')} className="text-base font-medium text-[#232F3E] hover:text-[#774A67]">Points and Credits</Link>
+                </li>
+                <li className="flex items-center gap-3">
+                  <span className="inline-block w-8 h-8 bg-[#774A67]/10 rounded-lg flex items-center justify-center text-[#774A67] text-xl"><HiOutlineUser /></span>
+                  <Link to="/Clients/Memberships" onClick={() => handleNav('/Clients/Memberships')} className="text-base font-medium text-[#232F3E] hover:text-[#774A67]">Memberships</Link>
+                </li>
               </ul>
             </div>
+
             {/* Inventory */}
             <div className="p-8 flex flex-col">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2 text-[#232F3E]">Inventory <span className="text-[#774A67]">&rarr;</span></h2>
+              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2 text-[#232F3E]">
+                Inventory <span className="text-[#774A67]">&rarr;</span>
+              </h2>
               <ul className="space-y-3">
-                <li className="flex items-center gap-3"><span className="inline-block w-8 h-8 bg-[#774A67]/10 rounded-lg flex items-center justify-center text-[#774A67] text-xl"><FaBoxes /></span><Link to="/Inventory/InventoryManagement" onClick={toggleModules} className="text-base font-medium text-[#232F3E] hover:text-[#774A67]">Inventory Management</Link></li>
-                <li className="flex items-center gap-3"><span className="inline-block w-8 h-8 bg-[#774A67]/10 rounded-lg flex items-center justify-center text-[#774A67] text-xl"><FaBoxOpen /></span><Link to="/Inventory/ProductManagement" onClick={toggleModules} className="text-base font-medium text-[#232F3E] hover:text-[#774A67]">Product Management</Link></li>
-                <li className="flex items-center gap-3"><span className="inline-block w-8 h-8 bg-[#774A67]/10 rounded-lg flex items-center justify-center text-[#774A67] text-xl"><FaShoppingCart /></span><Link to="/Inventory/Purchases" onClick={toggleModules} className="text-base font-medium text-[#232F3E] hover:text-[#774A67]">Purchases</Link></li>
-                <li className="flex items-center gap-3"><span className="inline-block w-8 h-8 bg-[#774A67]/10 rounded-lg flex items-center justify-center text-[#774A67] text-xl"><FaSyncAlt /></span><Link to="/Inventory/PurchaseCycle" onClick={toggleModules} className="text-base font-medium text-[#232F3E] hover:text-[#774A67]">Purchase Cycle</Link></li>
-                <li className="flex items-center gap-3"><span className="inline-block w-8 h-8 bg-[#774A67]/10 rounded-lg flex items-center justify-center text-[#774A67] text-xl"><FaTruck /></span><Link to="/Inventory/Suppliers" onClick={toggleModules} className="text-base font-medium text-[#232F3E] hover:text-[#774A67]">Suppliers</Link></li>
-                <li className="flex items-center gap-3"><span className="inline-block w-8 h-8 bg-[#774A67]/10 rounded-lg flex items-center justify-center text-[#774A67] text-xl"><FaClipboardList /></span><Link to="/Inventory/Requisitions" onClick={toggleModules} className="text-base font-medium text-[#232F3E] hover:text-[#774A67]">Requisitions</Link></li>
-                <li className="flex items-center gap-3"><span className="inline-block w-8 h-8 bg-[#774A67]/10 rounded-lg flex items-center justify-center text-[#774A67] text-xl"><FaCogs /></span><Link to="/Inventory/Stocktaking" onClick={toggleModules} className="text-base font-medium text-[#232F3E] hover:text-[#774A67]">Stocktaking</Link></li>
-                <li className="flex items-center gap-3"><span className="inline-block w-8 h-8 bg-[#774A67]/10 rounded-lg flex items-center justify-center text-[#774A67] text-xl"><FaCogs /></span><Link to="/Inventory/ManufacturingManagement" onClick={toggleModules} className="text-base font-medium text-[#232F3E] hover:text-[#774A67]">Manufacturing Management Software</Link></li>
-                <li className="flex items-center gap-3"><span className="inline-block w-8 h-8 bg-[#774A67]/10 rounded-lg flex items-center justify-center text-[#774A67] text-xl"><FaCogs /></span><Link to="/Inventory/ManufacturingOrdersManagement" onClick={toggleModules} className="text-base font-medium text-[#232F3E] hover:text-[#774A67]">Manufacturing Orders Management Software</Link></li>
+                <li><button onClick={() => handleNav('/Inventory/InventoryManagement')} className="w-full text-left flex items-center gap-3 text-base font-medium text-[#232F3E] hover:text-[#774A67]"><FaBoxes /> Inventory Management</button></li>
+                <li><button onClick={() => handleNav('/Inventory/ProductManagement')} className="w-full text-left flex items-center gap-3 text-base font-medium text-[#232F3E] hover:text-[#774A67]"><FaBoxOpen /> Product Management</button></li>
+                <li><button onClick={() => handleNav('/Inventory/Purchases')} className="w-full text-left flex items-center gap-3 text-base font-medium text-[#232F3E] hover:text-[#774A67]"><FaShoppingCart /> Purchases</button></li>
+                <li><button onClick={() => handleNav('/Inventory/PurchaseCycle')} className="w-full text-left flex items-center gap-3 text-base font-medium text-[#232F3E] hover:text-[#774A67]"><FaSyncAlt /> Purchase Cycle</button></li>
+                <li><button onClick={() => handleNav('/Inventory/Suppliers')} className="w-full text-left flex items-center gap-3 text-base font-medium text-[#232F3E] hover:text-[#774A67]"><FaTruck /> Suppliers</button></li>
+                <li><button onClick={() => handleNav('/Inventory/Requisitions')} className="w-full text-left flex items-center gap-3 text-base font-medium text-[#232F3E] hover:text-[#774A67]"><FaClipboardList /> Requisitions</button></li>
+                <li><button onClick={() => handleNav('/Inventory/Stocktaking')} className="w-full text-left flex items-center gap-3 text-base font-medium text-[#232F3E] hover:text-[#774A67]"><FaCogs /> Stocktaking</button></li>
+                <li><button onClick={() => handleNav('/Inventory/ManufacturingManagement')} className="w-full text-left flex items-center gap-3 text-base font-medium text-[#232F3E] hover:text-[#774A67]"><FaCogs /> Manufacturing Management</button></li>
+                <li><button onClick={() => handleNav('/Inventory/ManufacturingOrdersManagement')} className="w-full text-left flex items-center gap-3 text-base font-medium text-[#232F3E] hover:text-[#774A67]"><FaCogs /> Manufacturing Orders</button></li>
               </ul>
             </div>
+
             {/* Accounting */}
             <div className="p-8 flex flex-col">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2 text-[#232F3E]">Accounting <span className="text-[#774A67]">&rarr;</span></h2>
+              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2 text-[#232F3E]">
+                Accounting <span className="text-[#774A67]">&rarr;</span>
+              </h2>
               <ul className="space-y-3">
-                <li className="flex items-center gap-3"><span className="inline-block w-8 h-8 bg-[#774A67]/10 rounded-lg flex items-center justify-center text-[#774A67] text-xl"><FaMoneyBillWave /></span><Link to="/Accounting/Expenses" onClick={toggleModules} className="text-base font-medium text-[#232F3E] hover:text-[#774A67]">Expenses</Link></li>
-                <li className="flex items-center gap-3"><span className="inline-block w-8 h-8 bg-[#774A67]/10 rounded-lg flex items-center justify-center text-[#774A67] text-xl"><FaBook /></span><Link to="/Accounting/GeneralAccounting" onClick={toggleModules} className="text-base font-medium text-[#232F3E] hover:text-[#774A67]">General Accounting</Link></li>
-                <li className="flex items-center gap-3"><span className="inline-block w-8 h-8 bg-[#774A67]/10 rounded-lg flex items-center justify-center text-[#774A67] text-xl"><FaRegListAlt /></span><Link to="/Accounting/ChartOfAccounts" onClick={toggleModules} className="text-base font-medium text-[#232F3E] hover:text-[#774A67]">Chart of Accounts</Link></li>
-                <li className="flex items-center gap-3"><span className="inline-block w-8 h-8 bg-[#774A67]/10 rounded-lg flex items-center justify-center text-[#774A67] text-xl"><FaRegBuilding /></span><Link to="/Accounting/AssetManagement" onClick={toggleModules} className="text-base font-medium text-[#232F3E] hover:text-[#774A67]">Asset Management</Link></li>
-                <li className="flex items-center gap-3"><span className="inline-block w-8 h-8 bg-[#774A67]/10 rounded-lg flex items-center justify-center text-[#774A67] text-xl"><FaRegChartBar /></span><Link to="/Accounting/CostCenters" onClick={toggleModules} className="text-base font-medium text-[#232F3E] hover:text-[#774A67]">Cost Centers</Link></li>
-                <li className="flex items-center gap-3"><span className="inline-block w-8 h-8 bg-[#774A67]/10 rounded-lg flex items-center justify-center text-[#774A67] text-xl"><FaRegCreditCard /></span><Link to="/Accounting/ChequeCycle" onClick={toggleModules} className="text-base font-medium text-[#232F3E] hover:text-[#774A67]">Cheque Cycle</Link></li>
+                <li><button onClick={() => handleNav('/Accounting/Expenses')} className="flex items-center gap-3 text-base font-medium text-[#232F3E] hover:text-[#774A67]"><FaMoneyBillWave /> Expenses</button></li>
+                <li><button onClick={() => handleNav('/Accounting/GeneralAccounting')} className="flex items-center gap-3 text-base font-medium text-[#232F3E] hover:text-[#774A67]"><FaBook /> General Accounting</button></li>
+                <li><button onClick={() => handleNav('/Accounting/ChartOfAccounts')} className="flex items-center gap-3 text-base font-medium text-[#232F3E] hover:text-[#774A67]"><FaRegListAlt /> Chart of Accounts</button></li>
+                <li><button onClick={() => handleNav('/Accounting/AssetManagement')} className="flex items-center gap-3 text-base font-medium text-[#232F3E] hover:text-[#774A67]"><FaRegBuilding /> Asset Management</button></li>
+                <li><button onClick={() => handleNav('/Accounting/CostCenters')} className="flex items-center gap-3 text-base font-medium text-[#232F3E] hover:text-[#774A67]"><FaRegChartBar /> Cost Centers</button></li>
+                <li><button onClick={() => handleNav('/Accounting/ChequeCycle')} className="flex items-center gap-3 text-base font-medium text-[#232F3E] hover:text-[#774A67]"><FaRegCreditCard /> Cheque Cycle</button></li>
               </ul>
             </div>
+
             {/* HRM */}
             <div className="p-8 flex flex-col">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2 text-[#232F3E]">HRM <span className="text-[#774A67]">&rarr;</span></h2>
+              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2 text-[#232F3E]">
+                HRM <span className="text-[#774A67]">&rarr;</span>
+              </h2>
               <ul className="space-y-3">
-                <li className="flex items-center gap-3"><span className="inline-block w-8 h-8 bg-[#774A67]/10 rounded-lg flex items-center justify-center text-[#774A67] text-xl"><FaUsers /></span><Link to="/HRM/HumanResourcesManagement" onClick={toggleModules} className="text-base font-medium text-[#232F3E] hover:text-[#774A67]">Human Resources Management</Link></li>
-                <li className="flex items-center gap-3"><span className="inline-block w-8 h-8 bg-[#774A67]/10 rounded-lg flex items-center justify-center text-[#774A67] text-xl"><FaRegAddressBook /></span><Link to="/HRM/OrganizationalStructure" onClick={toggleModules} className="text-base font-medium text-[#232F3E] hover:text-[#774A67]">Organizational Structure</Link></li>
-                <li className="flex items-center gap-3"><span className="inline-block w-8 h-8 bg-[#774A67]/10 rounded-lg flex items-center justify-center text-[#774A67] text-xl"><FaRegCalendarAlt /></span><Link to="/HRM/AttendanceAndLeaveManagement" onClick={toggleModules} className="text-base font-medium text-[#232F3E] hover:text-[#774A67]">Attendance and Leave management</Link></li>
-                <li className="flex items-center gap-3"><span className="inline-block w-8 h-8 bg-[#774A67]/10 rounded-lg flex items-center justify-center text-[#774A67] text-xl"><FaFileContract /></span><Link to="/HRM/Contracts" onClick={toggleModules} className="text-base font-medium text-[#232F3E] hover:text-[#774A67]">Contracts</Link></li>
-                <li className="flex items-center gap-3"><span className="inline-block w-8 h-8 bg-[#774A67]/10 rounded-lg flex items-center justify-center text-[#774A67] text-xl"><FaMoneyCheckAlt /></span><Link to="/HRM/Payroll" onClick={toggleModules} className="text-base font-medium text-[#232F3E] hover:text-[#774A67]">Payroll</Link></li>
-                <li className="flex items-center gap-3"><span className="inline-block w-8 h-8 bg-[#774A67]/10 rounded-lg flex items-center justify-center text-[#774A67] text-xl"><FaRegEnvelope /></span><Link to="/HRM/Requests" onClick={toggleModules} className="text-base font-medium text-[#232F3E] hover:text-[#774A67]">Requests</Link></li>
+                <li><button onClick={() => handleNav('/HRM/HumanResourcesManagement')} className="flex items-center gap-3 text-base font-medium text-[#232F3E] hover:text-[#774A67]"><FaUsers /> Human Resources</button></li>
+                <li><button onClick={() => handleNav('/HRM/OrganizationalStructure')} className="flex items-center gap-3 text-base font-medium text-[#232F3E] hover:text-[#774A67]"><FaRegAddressBook /> Organizational Structure</button></li>
+                <li><button onClick={() => handleNav('/HRM/AttendanceAndLeaveManagement')} className="flex items-center gap-3 text-base font-medium text-[#232F3E] hover:text-[#774A67]"><FaRegCalendarAlt /> Attendance & Leave</button></li>
+                <li><button onClick={() => handleNav('/HRM/Contracts')} className="flex items-center gap-3 text-base font-medium text-[#232F3E] hover:text-[#774A67]"><FaFileContract /> Contracts</button></li>
+                <li><button onClick={() => handleNav('/HRM/Payroll')} className="flex items-center gap-3 text-base font-medium text-[#232F3E] hover:text-[#774A67]"><FaMoneyCheckAlt /> Payroll</button></li>
+                <li><button onClick={() => handleNav('/HRM/Requests')} className="flex items-center gap-3 text-base font-medium text-[#232F3E] hover:text-[#774A67]"><FaRegEnvelope /> Requests</button></li>
               </ul>
             </div>
+
             {/* Operations */}
             <div className="p-8 flex flex-col">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2 text-[#232F3E]">Operations <span className="text-[#774A67]">&rarr;</span></h2>
+              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2 text-[#232F3E]">
+                Operations <span className="text-[#774A67]">&rarr;</span>
+              </h2>
               <ul className="space-y-3">
-                <li className="flex items-center gap-3"><span className="inline-block w-8 h-8 bg-[#774A67]/10 rounded-lg flex items-center justify-center text-[#774A67] text-xl"><FaCogs /></span><Link to="/Operations/Operations" onClick={toggleModules} className="text-base font-medium text-[#232F3E] hover:text-[#774A67]">Operations</Link></li>
-                <li className="flex items-center gap-3"><span className="inline-block w-8 h-8 bg-[#774A67]/10 rounded-lg flex items-center justify-center text-[#774A67] text-xl"><FaTasks /></span><Link to="/Operations/WorkOrders" onClick={toggleModules} className="text-base font-medium text-[#232F3E] hover:text-[#774A67]">Work Orders</Link></li>
-                <li className="flex items-center gap-3"><span className="inline-block w-8 h-8 bg-[#774A67]/10 rounded-lg flex items-center justify-center text-[#774A67] text-xl"><FaRegCalendarAlt /></span><Link to="/Operations/BookingManagement" onClick={toggleModules} className="text-base font-medium text-[#232F3E] hover:text-[#774A67]">Booking Management</Link></li>
-                <li className="flex items-center gap-3"><span className="inline-block w-8 h-8 bg-[#774A67]/10 rounded-lg flex items-center justify-center text-[#774A67] text-xl"><FaRegBuilding /></span><Link to="/Operations/RentalAndUnitManagement" onClick={toggleModules} className="text-base font-medium text-[#232F3E] hover:text-[#774A67]">Rental and Unit Management</Link></li>
-                <li className="flex items-center gap-3"><span className="inline-block w-8 h-8 bg-[#774A67]/10 rounded-lg flex items-center justify-center text-[#774A67] text-xl"><FaRegClock /></span><Link to="/Operations/TimeTracking" onClick={toggleModules} className="text-base font-medium text-[#232F3E] hover:text-[#774A67]">Time Tracking</Link></li>
+                <li><button onClick={() => handleNav('/Operations/Operations')} className="flex items-center gap-3 text-base font-medium text-[#232F3E] hover:text-[#774A67]"><FaCogs /> Operations</button></li>
+                <li><button onClick={() => handleNav('/Operations/WorkOrders')} className="flex items-center gap-3 text-base font-medium text-[#232F3E] hover:text-[#774A67]"><FaTasks /> Work Orders</button></li>
+                <li><button onClick={() => handleNav('/Operations/BookingManagement')} className="flex items-center gap-3 text-base font-medium text-[#232F3E] hover:text-[#774A67]"><FaRegCalendarAlt /> Booking Management</button></li>
+                <li><button onClick={() => handleNav('/Operations/RentalAndUnitManagement')} className="flex items-center gap-3 text-base font-medium text-[#232F3E] hover:text-[#774A67]"><FaRegBuilding /> Rental & Unit Mgmt</button></li>
+                <li><button onClick={() => handleNav('/Operations/TimeTracking')} className="flex items-center gap-3 text-base font-medium text-[#232F3E] hover:text-[#774A67]"><FaRegClock /> Time Tracking</button></li>
               </ul>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Sidebar */}
       <div className="w-[340px] bg-[#f7f8fa] border-l border-gray-200 p-8 flex flex-col justify-between min-h-full">
         <div>
-          <ul className="space-y-4 mb-8">
+          <ul className="space-y-4 mb-4">
             {sidebarLinks.map((link) => (
-              <li key={link} className="text-lg font-bold text-[#232F3E] hover:text-[#774A67] cursor-pointer">{link}</li>
+              <li key={link.label}>
+                <button
+                  onClick={() => handleNav(link.path)}
+                  className="text-lg font-bold text-[#232F3E] hover:text-[#774A67] w-full text-left"
+                >
+                  {link.label}
+                </button>
+              </li>
             ))}
+
+            {/* Pricing dropdown */}
+            <li>
+              <div>
+                <button
+                  onClick={() => setPricingOpen(prev => !prev)}
+                  aria-expanded={pricingOpen}
+                  className="text-lg font-bold text-[#232F3E] hover:text-[#774A67] w-full text-left flex items-center justify-between"
+                >
+                  Pricing
+                  <span className="ml-2 text-xl">{pricingOpen ? '▴' : '▾'}</span>
+                </button>
+
+                {pricingOpen && (
+                  <ul className="mt-2 ml-4 space-y-2">
+                    <li>
+                      <button
+                        onClick={() => handleNav('/pricing/module-pricing')}
+                        className="text-base text-[#232F3E] hover:text-[#774A67] w-full text-left"
+                      >
+                        Module Pricing
+                      </button>
+                    </li>
+                    <li>
+                      <button
+                        onClick={() => handleNav('/pricing/plan-pricing')}
+                        className="text-base text-[#232F3E] hover:text-[#774A67] w-full text-left"
+                      >
+                        Plan Pricing
+                      </button>
+                    </li>
+                  </ul>
+                )}
+              </div>
+            </li>
           </ul>
+
           <hr className="my-4 border-gray-300" />
-          <div>
-            <div className="text-lg font-bold mb-2 text-[#232F3E]">More</div>
-            <ul className="space-y-2">
-              {moreLinks.map((link) => (
-                <li key={link} className="text-base text-[#232F3E] hover:text-[#774A67] cursor-pointer">{link}</li>
-              ))}
-            </ul>
+
+          {/* Optional small footer area — removed "More" section per your request */}
+          <div className="text-sm text-gray-500">
+            {/* You can put small helpful links, copyright, or nothing */}
           </div>
         </div>
+
+        {/* Close button */}
         <button
           className="absolute top-6 right-6 text-3xl text-gray-400 hover:text-[#232F3E] z-10"
           onClick={toggleModules}
           aria-label="Close Modules"
         >
           &times;
+       
+
         </button>
       </div>
       <style>{`

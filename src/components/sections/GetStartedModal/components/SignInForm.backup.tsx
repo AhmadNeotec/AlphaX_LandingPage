@@ -38,13 +38,6 @@ const SignInForm = ({ loginSuccess, setLoginSuccess }: Props) => {
   const navigate = useNavigate();
   const toggleStarted = rootStore(({ toggleStarted }) => toggleStarted);
   const [showPassword, setShowPassword] = useState(false);
-  const [showForgotModal, setShowForgotModal] = useState(false);
-  const [fpEmail, setFpEmail] = useState("");
-  const [fpPassword, setFpPassword] = useState("");
-  const [fpConfirm, setFpConfirm] = useState("");
-  const [fpShowPwd, setFpShowPwd] = useState(false);
-  const [fpShowConfirm, setFpShowConfirm] = useState(false);
-  const [fpLoading, setFpLoading] = useState(false);
 
   // Reset form on component mount
   useEffect(() => {
@@ -75,78 +68,61 @@ const SignInForm = ({ loginSuccess, setLoginSuccess }: Props) => {
   }, []);
 
   const handleForgotPassword = () => {
-    setFpEmail("");
-    setFpPassword("");
-    setFpConfirm("");
-    setShowForgotModal(true);
+    enqueueSnackbar("Forgot password functionality coming soon!", { variant: "info" });
   };
 
-  const submitForgotPassword = async () => {
+  const onSubmit = async (data: { email: string; password: string }) => {
+    console.log("🔐 Attempting login with:", data);
+    setLogging(true);
     try {
-      if (!fpEmail || !EMAIL_PATTERN.test(fpEmail)) {
-        enqueueSnackbar("Enter a valid email", { variant: "warning" });
-        return;
-      }
-      if (!fpPassword || fpPassword.length < 6) {
-        enqueueSnackbar("Password must be at least 6 characters", { variant: "warning" });
-        return;
-      }
-      if (fpPassword !== fpConfirm) {
-        enqueueSnackbar("Passwords do not match", { variant: "warning" });
-        return;
-      }
-      setFpLoading(true);
-      const res = await fetch("https://test.neotec.ai/api/method/alphax_erp.api.change_password.change_user_password", {
+      // Always call the login API
+      const loginPayload = {
+        email: data.email,
+        password: data.password,
+      };
+      console.log("Login API payload:", loginPayload);
+      const loginRes = await fetch("https://test.neotec.ai/api/method/alphax_erp.api.login.login", {
         method: "POST",
         headers: withApiAuthHeaders(),
-        body: JSON.stringify({ userId: fpEmail, newPassword: fpPassword }),
+        body: JSON.stringify(loginPayload),
+        credentials: 'include',
       });
-      let data: any = null;
-      try {
-        data = await res.json();
-      } catch {}
-      console.log('[ForgotPassword] Response status:', res.status);
-      console.log('[ForgotPassword] Raw data:', data);
-
-      const status = data?.message?.status || data?.status;
-      const apiMsg = data?.message?.message || data?.message || (status === 'success' ? 'Password updated successfully.' : 'Failed to reset password');
-
-      if (!res.ok || status !== "success") {
-        throw new Error(typeof apiMsg === 'string' ? apiMsg : 'Failed to reset password');
+      console.log("Login API response status:", loginRes.status);
+      const loginData = await loginRes.json();
+      console.log("Login API response body:", loginData);
+      if (loginRes.ok && loginData.message && loginData.message.token) {
+        enqueueSnackbar("Login successful!", { variant: "success" });
+        if (data.email.toLowerCase() === "superadmin@gmail.com") {
+          console.log("Superadmin login detected, redirecting to /cms-panel");
+          localStorage.setItem("isSuperAdmin", "true");
+          localStorage.setItem("tk", loginData.message.token); // Save token for superadmin
+          setLoginSuccess(true);
+          toggleStarted();
+          setTimeout(() => {
+            navigate("/cms-panel", { replace: true });
+          }, 500);
+        } else {
+          console.log("Regular user login, redirecting to /clientLogin");
+          localStorage.removeItem("isSuperAdmin");
+          localStorage.setItem("user", data.email); // Store user email for dashboard access
+          console.log("Stored user email in localStorage:", data.email);
+          console.log("Stored token in localStorage:", loginData.message.token);
+          setLoginSuccess(true);
+          clientLogin(loginData.message.token); // Set isLoggedIn to true
+          toggleStarted();
+          setTimeout(() => {
+            navigate("/clientLogin", { replace: true });
+          }, 500);
+        }
+      } else {
+        enqueueSnackbar("Login failed. Please check your credentials.", { variant: "error" });
       }
-
-      enqueueSnackbar(typeof apiMsg === 'string' ? apiMsg : 'Password updated successfully.', { variant: "success" });
-      setShowForgotModal(false);
-      setFpEmail("");
-      setFpPassword("");
-      setFpConfirm("");
-    } catch (err: any) {
-      const errorMessage = typeof err?.message === 'string' ? err.message : 'Error updating password';
-      enqueueSnackbar(errorMessage, { variant: "error" });
+    } catch (error) {
+      console.error("Login error:", error);
+      enqueueSnackbar("Login error. Please try again.", { variant: "error" });
     } finally {
-      setFpLoading(false);
+      setLogging(false);
     }
-  };
-
-  //const OAUTH_CLIENT_ID = "CLIENT_ID_FROM_OAUTH_CLIENT"; // TODO: Replace with your actual client ID
-  //const OAUTH_REDIRECT_URI = "https://neotechis.com/callback";
-  //const OAUTH_AUTH_URL = `https://test.neotec.ai/api/method/frappe.integrations.oauth2.authorize?client_id=${OAUTH_CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(OAUTH_REDIRECT_URI)}&scope=all`;
-  
-  const OAUTH_CLIENT_ID = "93kjpi4dm5"; // from your Frappe OAuth Client
-  const OAUTH_REDIRECT_URI = "https://neotechis.com/callback";
-  const OAUTH_SCOPE = "all";
-  const OAUTH_AUTH_URL = `https://test.neotec.ai/api/method/frappe.integrations.oauth2.authorize?client_id=${OAUTH_CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(OAUTH_REDIRECT_URI)}&scope=${encodeURIComponent(OAUTH_SCOPE)}`;
-
-  // Remove old onSubmit logic and replace with OAuth redirect
-  const onOAuthLogin = () => {
-    try {
-      // Persist the email the user typed for downstream API usage
-      // This should only be cleared on explicit logout
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const emailVal = (document.getElementById('email') as HTMLInputElement)?.value || '';
-      if (emailVal) localStorage.setItem('user', emailVal);
-    } catch {}
-    window.location.href = OAUTH_AUTH_URL;
   };
 
   return (
@@ -173,7 +149,7 @@ const SignInForm = ({ loginSuccess, setLoginSuccess }: Props) => {
           </div>
 
           {/* Form Section */}
-          <form key={formKey} className="w-full space-y-6" onSubmit={e => { e.preventDefault(); onOAuthLogin(); }}>
+          <form key={formKey} className="w-full space-y-6" onSubmit={handleSubmit(onSubmit)}>
             <div className="space-y-5">
               {/* Email Field */}
               <div>
@@ -240,9 +216,10 @@ const SignInForm = ({ loginSuccess, setLoginSuccess }: Props) => {
               {/* Submit Button */}
               <button
                 type="submit"
+                disabled={logging}
                 className="w-full py-3 px-4 flex justify-center items-center gap-2 text-base font-semibold rounded-xl bg-gradient-to-r from-[#774A67] to-[#5e3752] text-white hover:from-[#5e3752] hover:to-[#774A67] transform transition-all duration-300 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Sign in
+                {logging ? <Loader /> : "Sign in"}
               </button>
             </div>
           </form>
@@ -277,75 +254,6 @@ const SignInForm = ({ loginSuccess, setLoginSuccess }: Props) => {
         </div>
       )}
     </div>
-    {/* Forgot Password Modal */}
-    {showForgotModal && (
-      <div className="fixed inset-0 z-[9999] bg-black/40 flex items-center justify-center">
-        <div className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6">
-          <button
-            className="absolute top-4 right-4 text-2xl text-gray-500 hover:text-gray-800"
-            onClick={() => setShowForgotModal(false)}
-            aria-label="Close"
-          >
-            &times;
-          </button>
-          <h3 className="text-xl font-bold text-[#774A67] mb-4">Reset Password</h3>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email</label>
-              <input
-                type="email"
-                value={fpEmail}
-                onChange={(e) => setFpEmail(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white/70 dark:bg-gray-900/40"
-                placeholder="your@email.com"
-              />
-            </div>
-            <div className="relative">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">New Password</label>
-              <input
-                type={fpShowPwd ? "text" : "password"}
-                value={fpPassword}
-                onChange={(e) => setFpPassword(e.target.value)}
-                className="w-full px-3 py-2 pr-10 rounded-lg border border-gray-300 dark:border-gray-600 bg-white/70 dark:bg-gray-900/40"
-                placeholder="Enter new password"
-              />
-              <button
-                type="button"
-                className="absolute right-3 top-9 text-gray-500"
-                onClick={() => setFpShowPwd((v) => !v)}
-              >
-                {fpShowPwd ? <FaEyeSlash /> : <FaEye />}
-              </button>
-            </div>
-            <div className="relative">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Confirm Password</label>
-              <input
-                type={fpShowConfirm ? "text" : "password"}
-                value={fpConfirm}
-                onChange={(e) => setFpConfirm(e.target.value)}
-                className="w-full px-3 py-2 pr-10 rounded-lg border border-gray-300 dark:border-gray-600 bg-white/70 dark:bg-gray-900/40"
-                placeholder="Confirm new password"
-              />
-              <button
-                type="button"
-                className="absolute right-3 top-9 text-gray-500"
-                onClick={() => setFpShowConfirm((v) => !v)}
-              >
-                {fpShowConfirm ? <FaEyeSlash /> : <FaEye />}
-              </button>
-            </div>
-            <button
-              type="button"
-              disabled={fpLoading}
-              onClick={submitForgotPassword}
-              className="w-full py-2 rounded-lg bg-gradient-to-r from-[#774A67] to-[#5e3752] text-white font-semibold hover:from-[#5e3752] hover:to-[#774A67] disabled:opacity-60"
-            >
-              {fpLoading ? 'Resetting...' : 'Reset Password'}
-            </button>
-          </div>
-        </div>
-      </div>
-    )}
     </>
   );
 };

@@ -74,19 +74,11 @@ const Industries = () => {
       <div className="w-[340px] bg-[#f7f8fa] border-l border-gray-200 p-8 flex flex-col justify-between min-h-full">
         <div>
           <ul className="space-y-4 mb-8">
-            {['Home', 'Modules', 'Features', 'Pricing', 'Help'].map((link) => (
+            {['Home', 'Modules', 'Pricing', 'Contact Us'].map((link) => (
               <li key={link} className="text-lg font-bold text-[#232F3E] hover:text-[#774A67] cursor-pointer">{link}</li>
             ))}
           </ul>
           <hr className="my-4 border-gray-300" />
-          <div>
-            <div className="text-lg font-bold mb-2 text-[#232F3E]">More</div>
-            <ul className="space-y-2">
-              {['Additional services', 'About AlphaX', 'Contact Us'].map((link) => (
-                <li key={link} className="text-base text-[#232F3E] hover:text-[#774A67] cursor-pointer">{link}</li>
-              ))}
-            </ul>
-          </div>
         </div>
         <button
           className="absolute top-6 right-6 text-3xl text-gray-400 hover:text-[#232F3E] z-10"
@@ -131,3 +123,5 @@ const Industries = () => {
 };
 
 export default Industries; 
+
+

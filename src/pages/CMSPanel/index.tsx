@@ -41,9 +41,14 @@ const CMSPanel = () => {
   }, [navigate]);
 
   const handleLogout = () => {
-    localStorage.removeItem("isSuperAdmin");
-    localStorage.setItem("loginSuccess", "false");
-    navigate("/");
+    try {
+      localStorage.removeItem("isSuperAdmin");
+      localStorage.removeItem("tk");
+      localStorage.removeItem("user");
+      localStorage.setItem("loginSuccess", "false");
+    } catch {}
+    // Hard redirect ensures URL refresh and state reset
+    window.location.replace("/");
   };
 
   const handleChange = (plan: string, key: string, value: string) => {

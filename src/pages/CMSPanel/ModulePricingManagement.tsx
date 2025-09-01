@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { withApiAuthHeaders } from '@api/authHeaders';
 import { FiEdit2, FiSave, FiX, FiTrash2, FiToggleLeft, FiToggleRight, FiPlus } from 'react-icons/fi';
 import { enqueueSnackbar } from 'notistack';
 
@@ -50,9 +51,9 @@ const ModulePricingManagement: React.FC = () => {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch('https://newhrms.muftaah.com/api/method/alphax_erp.api.ModulePricing.get_module_pricing', {
+        const res = await fetch('https://test.neotec.ai/api/method/alphax_erp.api.ModulePricing.get_module_pricing', {
           method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
+          headers: withApiAuthHeaders(),
         });
         if (!res.ok) throw new Error('Failed to fetch pricing data');
         const data = await res.json();
@@ -96,9 +97,9 @@ const ModulePricingManagement: React.FC = () => {
       // Always send disabled: false by default
       const payload = { module_name, data: { ...data, disabled: false } };
       console.log('Saving row, payload:', payload);
-      const res = await fetch('https://newhrms.muftaah.com/api/method/alphax_erp.api.ModulePricing.update_module_pricing', {
+      const res = await fetch('https://test.neotec.ai/api/method/alphax_erp.api.ModulePricing.update_module_pricing', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: withApiAuthHeaders(),
         body: JSON.stringify(payload),
       });
       console.log('API response status:', res.status);
@@ -127,9 +128,9 @@ const ModulePricingManagement: React.FC = () => {
       const row = pricingRows[idx];
       const payload = { module_name: row.module_name, disabled: disabled ? 1 : 0 };
       console.log('set_module_pricing_disabled payload:', payload);
-      const res = await fetch('https://newhrms.muftaah.com/api/method/alphax_erp.api.ModulePricing.set_module_pricing_disabled', {
+      const res = await fetch('https://test.neotec.ai/api/method/alphax_erp.api.ModulePricing.set_module_pricing_disabled', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: withApiAuthHeaders(),
         body: JSON.stringify(payload),
       });
       console.log('set_module_pricing_disabled response status:', res.status);
@@ -166,11 +167,9 @@ const ModulePricingManagement: React.FC = () => {
         y5: Number(addForm.y5) || 0,
         disabled: addForm.disabled ? 1 : 0,
       };
-      const res = await fetch('https://newhrms.muftaah.com/api/method/alphax_erp.api.ModulePricing.add_module_pricing', {
+      const res = await fetch('https://test.neotec.ai/api/method/alphax_erp.api.ModulePricing.add_module_pricing', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: withApiAuthHeaders(),
         body: JSON.stringify(payload),
       });
       const result = await res.json();

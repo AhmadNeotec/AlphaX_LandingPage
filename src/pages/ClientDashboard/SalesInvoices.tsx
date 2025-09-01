@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
+import { withApiAuthHeaders } from '@api/authHeaders';
 import { motion } from 'framer-motion';
 import { FiDownload } from 'react-icons/fi';
 import DashboardNavbar from './DashboardNavbar';
@@ -49,17 +50,21 @@ const SalesInvoices: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const userId = localStorage.getItem('user');
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('All');
+  const [dateFrom, setDateFrom] = useState<string>('');
+  const [dateTo, setDateTo] = useState<string>('');
+  const [page, setPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(20);
 
   useEffect(() => {
     const fetchInvoices = async () => {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch('https://newhrms.muftaah.com/api/method/alphax_erp.api.sales_invoices.get_sales_invoices', {
+        const res = await fetch('https://test.neotec.ai/api/method/alphax_erp.api.sales_invoices.get_sales_invoices', {
           method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json'
-          },
+          headers: withApiAuthHeaders(),
           credentials: 'include',
           body: JSON.stringify({}),
         });
@@ -79,6 +84,46 @@ const SalesInvoices: React.FC = () => {
     if (userId) fetchInvoices();
     else setError('User not found in localStorage');
   }, [userId]);
+
+  const availableStatuses = useMemo(() => {
+    const set = new Set<string>();
+    invoices.forEach((i) => i.status && set.add(i.status));
+    return ['All', ...Array.from(set)];
+  }, [invoices]);
+
+  const filteredInvoices = useMemo(() => {
+    let rows = invoices;
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      rows = rows.filter((r) =>
+        r.name.toLowerCase().includes(q) ||
+        r.customer.toLowerCase().includes(q) ||
+        r.status.toLowerCase().includes(q)
+      );
+    }
+    if (statusFilter !== 'All') {
+      rows = rows.filter((r) => r.status === statusFilter);
+    }
+    if (dateFrom) {
+      const fromTs = new Date(dateFrom).getTime();
+      rows = rows.filter((r) => new Date(r.posting_date).getTime() >= fromTs);
+    }
+    if (dateTo) {
+      const toTs = new Date(dateTo).getTime();
+      rows = rows.filter((r) => new Date(r.posting_date).getTime() <= toTs);
+    }
+    return rows;
+  }, [invoices, search, statusFilter, dateFrom, dateTo]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [search, statusFilter, dateFrom, dateTo, pageSize]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredInvoices.length / pageSize));
+  const pagedInvoices = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return filteredInvoices.slice(start, start + pageSize);
+  }, [filteredInvoices, page, pageSize]);
 
   // Download PDF functionality
   const handleDownloadPDF = () => {
@@ -129,8 +174,59 @@ const SalesInvoices: React.FC = () => {
           {loading && <div className="py-12 text-lg text-gray-600 dark:text-gray-300">Loading...</div>}
           {error && <div className="text-red-600 mb-4">{error}</div>}
           {!loading && !error && (
-            <div className="overflow-x-auto w-full mt-2">
-              <table className="min-w-full bg-white/80 dark:bg-[#18181c]/80 border-2 border-[#774A67] dark:border-[#8b5cf6] rounded-2xl shadow-xl overflow-hidden">
+            <div className="w-full mt-2">
+              <div className="mb-4 grid grid-cols-1 md:grid-cols-5 gap-3 text-left w-full">
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search by invoice, customer or status"
+                  className="md:col-span-2 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#23232a] text-gray-800 dark:text-gray-200"
+                />
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#23232a] text-gray-800 dark:text-gray-200"
+                >
+                  {availableStatuses.map((s) => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+                <input
+                  type="date"
+                  value={dateFrom}
+                  onChange={(e) => setDateFrom(e.target.value)}
+                  className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#23232a] text-gray-800 dark:text-gray-200"
+                />
+                <input
+                  type="date"
+                  value={dateTo}
+                  onChange={(e) => setDateTo(e.target.value)}
+                  className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#23232a] text-gray-800 dark:text-gray-200"
+                />
+              </div>
+
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2 text-sm">
+                  <span>Rows per page</span>
+                  <select
+                    value={pageSize}
+                    onChange={(e) => setPageSize(Number(e.target.value))}
+                    className="px-2 py-1 rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#23232a]"
+                  >
+                    {[10, 20, 50, 100].map((n) => (
+                      <option key={n} value={n}>{n}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="text-sm text-gray-600 dark:text-gray-300">
+                  Showing {filteredInvoices.length === 0 ? 0 : (page - 1) * pageSize + 1}-{Math.min(page * pageSize, filteredInvoices.length)} of {filteredInvoices.length}
+                </div>
+              </div>
+
+              <div className="overflow-x-auto w-full border-2 border-[#774A67] dark:border-[#8b5cf6] rounded-2xl shadow-xl">
+                <div className="max-h-[60vh] overflow-y-auto">
+                  <table className="min-w-full bg-white/80 dark:bg-[#18181c]/80">
                 <thead className="bg-gradient-to-r from-[#f7f8fa] to-[#e9eaf3] dark:from-[#23232a] dark:to-[#18181c]">
                   <tr>
                     <th className="px-6 py-4 border-b-2 border-[#774A67] dark:border-[#8b5cf6] text-lg font-bold text-[#774A67] dark:text-[#8b5cf6]">Invoice Name</th>
@@ -141,12 +237,12 @@ const SalesInvoices: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {invoices.length === 0 ? (
+                  {pagedInvoices.length === 0 ? (
                     <tr>
                       <td colSpan={5} className="text-center py-12 text-gray-500 text-lg">No sales invoices found.</td>
                     </tr>
                   ) : (
-                    invoices.map((inv, idx) => (
+                    pagedInvoices.map((inv, idx) => (
                       <motion.tr
                         key={inv.name}
                         initial={{ opacity: 0, y: 20 }}
@@ -165,7 +261,27 @@ const SalesInvoices: React.FC = () => {
                     ))
                   )}
                 </tbody>
-              </table>
+                  </table>
+                </div>
+              </div>
+
+              <div className="mt-3 flex items-center justify-between">
+                <button
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="px-3 py-1 rounded border border-gray-300 dark:border-gray-700 disabled:opacity-50"
+                >
+                  Prev
+                </button>
+                <div className="text-sm">Page {page} of {totalPages}</div>
+                <button
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                  className="px-3 py-1 rounded border border-gray-300 dark:border-gray-700 disabled:opacity-50"
+                >
+                  Next
+                </button>
+              </div>
             </div>
           )}
         </motion.div>

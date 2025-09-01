@@ -48,7 +48,7 @@ const ClientDashboard = () => {
       setTrialLoading(true);
       setTrialError(null);
       try {
-        const res = await fetch('https://newhrms.muftaah.com/api/method/alphax_erp.api.user_info.get_user_creation_info', {
+        const res = await fetch('https://test.neotec.ai/api/method/alphax_erp.api.user_info.get_user_creation_info', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',

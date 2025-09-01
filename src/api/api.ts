@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { withApiAuthHeaders } from './authHeaders';
 
 const API_BASE_URL = '/api/method/alphax_erp.api.navbar'; // Adjust the app name if needed
 

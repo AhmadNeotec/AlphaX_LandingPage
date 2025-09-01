@@ -1,6 +1,7 @@
 import { API_CONFIG } from '../config/api';
+import { withApiAuthHeaders } from '@api/authHeaders';
 
-const BASE_URL = 'https://newhrms.muftaah.com/api/method/alphax_erp.api.NavbarCMS';
+const BASE_URL = 'https://test.neotec.ai/api/method/alphax_erp.api.NavbarCMS';
 
 export interface NavbarLink {
   label: string;
@@ -44,7 +45,7 @@ export const getNavbarConfig = async (): Promise<NavbarConfig> => {
   try {
     const response = await fetch(`${BASE_URL}.get_navbar_config`, {
       method: 'GET',
-      headers: API_CONFIG.headers,
+      headers: withApiAuthHeaders(API_CONFIG.headers),
     });
 
     if (!response.ok) {
@@ -87,7 +88,7 @@ export const getNavbarLinks = async (): Promise<NavbarLink[]> => {
   try {
     const response = await fetch(`${BASE_URL}.get_navbar_links`, {
       method: 'GET',
-      headers: API_CONFIG.headers,
+      headers: withApiAuthHeaders(API_CONFIG.headers),
     });
 
     if (!response.ok) {
@@ -117,7 +118,7 @@ export const getButtonColors = async (): Promise<ButtonColors> => {
   try {
     const response = await fetch(`${BASE_URL}.get_button_colors`, {
       method: 'GET',
-      headers: API_CONFIG.headers,
+      headers: withApiAuthHeaders(API_CONFIG.headers),
     });
 
     if (!response.ok) {
@@ -148,7 +149,7 @@ export const updateNavbarSettings = async (settings: Partial<NavbarConfig>): Pro
   try {
     const response = await fetch(`${BASE_URL}.update_navbar_settings`, {
       method: 'POST',
-      headers: API_CONFIG.headers,
+      headers: withApiAuthHeaders(API_CONFIG.headers),
       body: JSON.stringify(settings),
     });
 
@@ -169,7 +170,7 @@ export const updateNavLinks = async (navLinks: NavbarLink[]): Promise<boolean> =
   try {
     const response = await fetch(`${BASE_URL}.update_nav_links`, {
       method: 'POST',
-      headers: API_CONFIG.headers,
+      headers: withApiAuthHeaders(API_CONFIG.headers),
       body: JSON.stringify(navLinks),
     });
 
@@ -190,7 +191,7 @@ export const updateButtonColors = async (loginColor?: string, getStartedColor?: 
   try {
     const response = await fetch(`${BASE_URL}.update_button_colors`, {
       method: 'POST',
-      headers: API_CONFIG.headers,
+      headers: withApiAuthHeaders(API_CONFIG.headers),
       body: JSON.stringify({
         login_color: loginColor,
         get_started_color: getStartedColor
@@ -214,7 +215,7 @@ export const updateLogoSettings = async (logoUrl?: string, companyName?: string)
   try {
     const response = await fetch(`${BASE_URL}.update_logo_settings`, {
       method: 'POST',
-      headers: API_CONFIG.headers,
+      headers: withApiAuthHeaders(API_CONFIG.headers),
       body: JSON.stringify({
         logo_url: logoUrl,
         company_name: companyName
@@ -238,7 +239,7 @@ export const updateLanguageSettings = async (languages?: string[], defaultLangua
   try {
     const response = await fetch(`${BASE_URL}.update_language_settings`, {
       method: 'POST',
-      headers: API_CONFIG.headers,
+      headers: withApiAuthHeaders(API_CONFIG.headers),
       body: JSON.stringify({
         languages,
         default_language: defaultLanguage
@@ -262,7 +263,7 @@ export const initializeNavbarSettings = async (): Promise<boolean> => {
   try {
     const response = await fetch(`${BASE_URL}.initialize_navbar_settings`, {
       method: 'POST',
-      headers: API_CONFIG.headers,
+      headers: withApiAuthHeaders(API_CONFIG.headers),
     });
 
     if (!response.ok) {

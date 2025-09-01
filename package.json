@@ -33,6 +33,7 @@
     "jspdf-autotable": "^5.0.2",
     "next": "^15.2.4",
     "notistack": "^3.0.1",
+    "oauth2-server": "^3.1.1",
     "openai": "^4.103.0",
     "preline": "^2.0.2",
     "react": "^18.2.0",

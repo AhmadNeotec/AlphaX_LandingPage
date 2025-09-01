@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { withApiAuthHeaders } from '@api/authHeaders';
 import { FiEdit2, FiSave, FiX, FiTrash2, FiPlus, FiRefreshCw, FiToggleRight } from 'react-icons/fi';
 import { enqueueSnackbar } from 'notistack';
 
@@ -92,9 +93,9 @@ const NavbarManagement: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('https://newhrms.muftaah.com/api/method/alphax_erp.api.NavbarCMS.get_navbar_config', {
+      const res = await fetch('https://test.neotec.ai/api/method/alphax_erp.api.NavbarCMS.get_navbar_config', {
         method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
+        headers: withApiAuthHeaders(),
       });
       if (!res.ok) throw new Error('Failed to fetch navbar configuration');
       const response = await res.json();
@@ -192,9 +193,9 @@ const NavbarManagement: React.FC = () => {
       
       console.log('Adding link, payload:', payload);
       
-      const res = await fetch('https://newhrms.muftaah.com/api/method/alphax_erp.api.NavbarCMS.add_nav_link', {
+      const res = await fetch('https://test.neotec.ai/api/method/alphax_erp.api.NavbarCMS.add_nav_link', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: withApiAuthHeaders(),
         body: JSON.stringify({ link_data: payload }),
       });
       
@@ -244,9 +245,9 @@ const NavbarManagement: React.FC = () => {
       
       console.log('Updating link, payload:', updatedLinks);
       
-      const res = await fetch('https://newhrms.muftaah.com/api/method/alphax_erp.api.NavbarCMS.update_nav_links', {
+      const res = await fetch('https://test.neotec.ai/api/method/alphax_erp.api.NavbarCMS.update_nav_links', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: withApiAuthHeaders(),
         body: JSON.stringify({ nav_links: updatedLinks }),
       });
       
@@ -278,9 +279,9 @@ const NavbarManagement: React.FC = () => {
     try {
       const updatedLinks = config!.nav_links.filter((_, i) => i !== idx);
       
-      const res = await fetch('https://newhrms.muftaah.com/api/method/alphax_erp.api.NavbarCMS.update_nav_links', {
+      const res = await fetch('https://test.neotec.ai/api/method/alphax_erp.api.NavbarCMS.update_nav_links', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: withApiAuthHeaders(),
         body: JSON.stringify({ nav_links: updatedLinks }),
       });
       
@@ -335,9 +336,9 @@ const NavbarManagement: React.FC = () => {
     try {
       console.log('Saving button colors:', config?.button_colors);
       
-      const res = await fetch('https://newhrms.muftaah.com/api/method/alphax_erp.api.NavbarCMS.update_button_colors', {
+      const res = await fetch('https://test.neotec.ai/api/method/alphax_erp.api.NavbarCMS.update_button_colors', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: withApiAuthHeaders(),
         body: JSON.stringify({
           login_color: config?.button_colors.login_color,
           get_started_color: config?.button_colors.get_started_color
@@ -369,9 +370,9 @@ const NavbarManagement: React.FC = () => {
     try {
       console.log('Saving logo settings:', config?.logo_settings);
       
-      const res = await fetch('https://newhrms.muftaah.com/api/method/alphax_erp.api.NavbarCMS.update_logo_settings', {
+      const res = await fetch('https://test.neotec.ai/api/method/alphax_erp.api.NavbarCMS.update_logo_settings', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: withApiAuthHeaders(),
         body: JSON.stringify({
           logo_url: config?.logo_settings.logo_url,
           company_name: config?.logo_settings.company_name
@@ -425,9 +426,9 @@ const NavbarManagement: React.FC = () => {
       
       console.log('Updating language, payload:', updatedLanguages);
       
-      const res = await fetch('https://newhrms.muftaah.com/api/method/alphax_erp.api.NavbarCMS.update_languages_array', {
+      const res = await fetch('https://test.neotec.ai/api/method/alphax_erp.api.NavbarCMS.update_languages_array', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: withApiAuthHeaders(),
         body: JSON.stringify({ languages: updatedLanguages }),
       });
       
@@ -460,9 +461,9 @@ const NavbarManagement: React.FC = () => {
       
       console.log('Deleting language, updated languages:', updatedLanguages);
       
-      const res = await fetch('https://newhrms.muftaah.com/api/method/alphax_erp.api.NavbarCMS.update_languages_array', {
+      const res = await fetch('https://test.neotec.ai/api/method/alphax_erp.api.NavbarCMS.update_languages_array', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: withApiAuthHeaders(),
         body: JSON.stringify({ languages: updatedLanguages }),
       });
       
@@ -495,9 +496,9 @@ const NavbarManagement: React.FC = () => {
     try {
       console.log('Setting default language, language_id:', languageId);
       
-      const res = await fetch('https://newhrms.muftaah.com/api/method/alphax_erp.api.NavbarCMS.set_default_language', {
+      const res = await fetch('https://test.neotec.ai/api/method/alphax_erp.api.NavbarCMS.set_default_language', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: withApiAuthHeaders(),
         body: JSON.stringify({ language_id: languageId }),
       });
       
@@ -535,9 +536,9 @@ const NavbarManagement: React.FC = () => {
       
       console.log('Adding language, payload:', updatedLanguages);
       
-      const res = await fetch('https://newhrms.muftaah.com/api/method/alphax_erp.api.NavbarCMS.update_languages_array', {
+      const res = await fetch('https://test.neotec.ai/api/method/alphax_erp.api.NavbarCMS.update_languages_array', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: withApiAuthHeaders(),
         body: JSON.stringify({ languages: updatedLanguages }),
       });
       

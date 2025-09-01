@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import PaymentDetailsModal from '../PaymentDetailsModal';
 import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
+import { withApiAuthHeaders } from '@api/authHeaders';
 import { rootStore } from '@store/index';
 import React from 'react';
 import DashboardNavbar from './DashboardNavbar';
@@ -18,16 +19,19 @@ const ClientDashboard = () => {
   
   const [showPaymentList, setShowPaymentList] = useState(false);
   const [showTrialExpiredModal, setShowTrialExpiredModal] = useState(false);
-  const userEmail = localStorage.getItem("user") || "User";
+  const [userEmail, setUserEmail] = useState<string>(localStorage.getItem("user") || "");
   console.log("[Dashboard] Retrieved user email from localStorage:", userEmail);
   const profileDropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const handleClientLogout = rootStore(({ handleClientLogout }) => handleClientLogout);
+  const setStarted = rootStore(({ setStarted }) => setStarted);
   const [trialDaysUsed, setTrialDaysUsed] = useState<number | null>(null);
   const [trialExpired, setTrialExpired] = useState(false);
   const [trialLoading, setTrialLoading] = useState(true);
   const [trialError, setTrialError] = useState<string | null>(null);
   const TRIAL_DAYS = 14;
+  // Temporarily disable trial management (will be re-enabled later)
+  const ENABLE_TRIAL_MANAGEMENT = false;
 
   useEffect(() => {
     if (!isProfileOpen) return;
@@ -46,22 +50,35 @@ const ClientDashboard = () => {
   }, [isProfileOpen]);
 
   useEffect(() => {
+    // Ensure the public sign-in modal is closed on the dashboard
+    setStarted(false);
+
+    // 1) Populate email strictly from localStorage; if missing, show error
+    if (!userEmail || !userEmail.includes('@')) {
+      setTrialLoading(false);
+      setTrialError('User email not available');
+      return;
+    }
+
+    if (!ENABLE_TRIAL_MANAGEMENT) {
+      // Skip trial fetch while disabled
+      setTrialLoading(false);
+      setTrialError(null);
+      return;
+    }
+
     const fetchTrialInfo = async () => {
       setTrialLoading(true);
       setTrialError(null);
       try {
         console.log('[TrialInfo] User email:', userEmail);
         
-        const requestBody = { userId: userEmail };
-        console.log('[TrialInfo] Request body:', requestBody);
-        
-        const res = await fetch('https://newhrms.muftaah.com/api/method/alphax_erp.api.user_info.get_user_creation_info', {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json'
-          },
+        const url = new URL('https://test.neotec.ai/api/method/alphax_erp.api.user_info.get_user_creation_info');
+        if (userEmail) url.searchParams.set('userId', userEmail);
+        const res = await fetch(url.toString(), {
+          method: 'GET',
+          headers: withApiAuthHeaders(),
           credentials: 'include',
-          body: JSON.stringify(requestBody),
         });
         
         console.log('[TrialInfo] Response status:', res.status);
@@ -76,9 +93,15 @@ const ClientDashboard = () => {
         const data = await res.json();
         console.log('[TrialInfo] Response data:', data);
         
-        const creation = data.message?.data?.creation;
-        const current_datetime = data.message?.data?.current_datetime;
-        if (!creation || !current_datetime) throw new Error('Invalid API response');
+        const status = data?.message?.status;
+        const creation = data?.message?.data?.creation;
+        const current_datetime = data?.message?.data?.current_datetime;
+        const emailFromApi = data?.message?.data?.email;
+        if (emailFromApi && typeof emailFromApi === 'string') {
+          localStorage.setItem('user', emailFromApi);
+          setUserEmail(emailFromApi);
+        }
+        if (status !== 'success' || !creation || !current_datetime) throw new Error('Invalid API response');
         
         // Test calculation with the actual data from your API response
         const createdDate = new Date(creation);
@@ -113,7 +136,7 @@ const ClientDashboard = () => {
         setTrialLoading(false);
       }
     };
-    if (userEmail) fetchTrialInfo();
+    fetchTrialInfo();
   }, [userEmail, navigate]);
 
   return (
@@ -151,43 +174,45 @@ const ClientDashboard = () => {
             transition={{ duration: 0.8 }}
             className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4"
           >
-            {/* Static Trial Period Notification Banner - always below main heading */}
-            {trialLoading ? (
-              <div className="w-full my-6 p-4 bg-blue-200 text-blue-800 rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between">
-                <span>
-                  <b>Loading trial information...</b>
-                </span>
-              </div>
-            ) : trialError ? (
-              <div className="w-full my-6 p-4 bg-red-200 text-red-800 rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between">
-                <span>
-                  <b>Trial status error:</b> {trialError}
-                </span>
-              </div>
-            ) : trialExpired ? (
-              <div className="w-full my-6 p-4 bg-orange-200 text-orange-800 rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between">
-                <span>
-                  <b>Trial Expired!</b> Your trial period of {TRIAL_DAYS} days has ended. Redirecting to billing management...
-                </span>
-                <button
-                  className="mt-4 sm:mt-0 bg-orange-600 text-white px-4 py-2 rounded font-bold sm:ml-4"
-                  onClick={() => navigate('/clientLogin/billing-management')}
-                >
-                  Go to Billing
-                </button>
-              </div>
-            ) : (
-              <div className="w-full my-6 p-4 bg-yellow-200 text-yellow-800 rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between">
-                <span>
-                  <b>You are on trial version!</b> Your trial: <b>{trialDaysUsed} / {TRIAL_DAYS} days used</b>
-                </span>
-                <button
-                  className="mt-4 sm:mt-0 bg-yellow-600 text-white px-4 py-2 rounded font-bold sm:ml-4"
-                  onClick={() => navigate('/clientLogin/billing-management')}
-                >
-                  Billing Page
-                </button>
-              </div>
+            {/* Trial Period Notification Banner - temporarily disabled */}
+            {ENABLE_TRIAL_MANAGEMENT && (
+              trialLoading ? (
+                <div className="w-full my-6 p-4 bg-blue-200 text-blue-800 rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between">
+                  <span>
+                    <b>Loading trial information...</b>
+                  </span>
+                </div>
+              ) : trialError ? (
+                <div className="w-full my-6 p-4 bg-red-200 text-red-800 rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between">
+                  <span>
+                    <b>Trial status error:</b> {trialError}
+                  </span>
+                </div>
+              ) : trialExpired ? (
+                <div className="w-full my-6 p-4 bg-orange-200 text-orange-800 rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between">
+                  <span>
+                    <b>Trial Expired!</b> Your trial period of {TRIAL_DAYS} days has ended. Redirecting to billing management...
+                  </span>
+                  <button
+                    className="mt-4 sm:mt-0 bg-orange-600 text-white px-4 py-2 rounded font-bold sm:ml-4"
+                    onClick={() => navigate('/clientLogin/billing-management')}
+                  >
+                    Go to Billing
+                  </button>
+                </div>
+              ) : (
+                <div className="w-full my-6 p-4 bg-yellow-200 text-yellow-800 rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between">
+                  <span>
+                    <b>You are on trial version!</b> Your trial: <b>{trialDaysUsed} / {TRIAL_DAYS} days used</b>
+                  </span>
+                  <button
+                    className="mt-4 sm:mt-0 bg-yellow-600 text-white px-4 py-2 rounded font-bold sm:ml-4"
+                    onClick={() => navigate('/clientLogin/billing-management')}
+                  >
+                    Billing Page
+                  </button>
+                </div>
+              )
             )}
           </motion.div>
           {/* Today Summary Tiles */}
@@ -195,7 +220,7 @@ const ClientDashboard = () => {
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 drop-shadow-lg bg-gradient-to-r from-[#774A67] to-[#8b5cf6] bg-clip-text text-transparent">
               Today Summary 
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {/* Invoice */}
               <div className="rounded-2xl bg-gradient-to-br from-blue-400 to-blue-600 shadow-xl border border-blue-200/50 dark:border-blue-700/50 p-6 flex flex-col justify-between min-h-[120px]">
                 <div className="flex items-center justify-between">
@@ -233,24 +258,19 @@ const ClientDashboard = () => {
               <div className="rounded-2xl bg-gradient-to-br from-purple-400 to-purple-600 shadow-xl border border-purple-200/50 dark:border-purple-700/50 p-6 flex flex-col justify-between min-h-[120px]">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-white text-lg font-bold">0</p>
+                    {/*<p className="text-white text-lg font-bold">2</p>*/}
                     <p className="text-white/80 text-sm font-medium">Sites</p>
                   </div>
                   <FiSettings className="w-10 h-10 text-white/70" />
                 </div>
-                <button className="mt-4 text-white/80 text-xs font-semibold flex items-center gap-1 hover:underline">More info <span>→</span></button>
+                <button 
+                  onClick={() => navigate('/clientDashboard/site-management')} 
+                  className="mt-4 text-white/80 text-xs font-semibold flex items-center gap-1 hover:underline"
+                >
+                  More info <span>→</span>
+                </button>
               </div>
-              {/* Users */}
-              <div className="rounded-2xl bg-gradient-to-br from-green-400 to-green-600 shadow-xl border border-green-200/50 dark:border-green-700/50 p-6 flex flex-col justify-between min-h-[120px]">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-white text-lg font-bold">0</p>
-                    <p className="text-white/80 text-sm font-medium">Users</p>
-                  </div>
-                  <FiUsers className="w-10 h-10 text-white/70" />
-                </div>
-                <button className="mt-4 text-white/80 text-xs font-semibold flex items-center gap-1 hover:underline">More info <span>→</span></button>
-              </div>
+
             </div>
           </section>
             {/* Recent Activities Table */}

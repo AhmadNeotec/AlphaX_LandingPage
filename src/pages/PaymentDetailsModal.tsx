@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { withApiAuthHeaders } from '@api/authHeaders';
 import { useNavigate } from "react-router-dom";
 
 interface PaymentDetailsModalProps {
@@ -56,11 +57,9 @@ const PaymentDetailsModal: React.FC<PaymentDetailsModalProps> = ({ isOpen, onClo
       setSubmitting(true);
       try {
         console.log('[PaymentModal] Sending POST request to Frappe API...');
-        const res = await fetch(" https://newhrms.muftaah.com/api/method/alphax_erp.api.payment.save_payment_details", {
+        const res = await fetch(" https://test.neotec.ai/api/method/alphax_erp.api.payment.save_payment_details", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
+          headers: withApiAuthHeaders(),
           credentials: "include",
           body: JSON.stringify({
             userId,

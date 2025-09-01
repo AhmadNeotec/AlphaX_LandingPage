@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { withApiAuthHeaders } from '@api/authHeaders';
 import { motion } from 'framer-motion';
 import { FiDownload } from 'react-icons/fi';
 import DashboardNavbar from './DashboardNavbar';
@@ -54,11 +55,9 @@ const PurchaseOrders: React.FC = () => {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch('https://newhrms.muftaah.com/api/method/alphax_erp.api.purchase_orders.get_user_purchase_orders', {
+        const res = await fetch('https://test.neotec.ai/api/method/alphax_erp.api.purchase_orders.get_user_purchase_orders', {
           method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json'
-          },
+          headers: withApiAuthHeaders(),
           credentials: 'include',
           body: JSON.stringify({}),
         });

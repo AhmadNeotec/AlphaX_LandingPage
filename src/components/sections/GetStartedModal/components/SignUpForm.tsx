@@ -8,6 +8,7 @@ import PhoneInput from "react-phone-input-2";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@utils/index";
 import Logo from "@components/Logo";
+import { rootStore } from "@store/index";
 
 type Props = {
   toggleSignUp: () => void;
@@ -36,6 +37,7 @@ const SignUpForm = ({ toggleSignUp }: Props) => {
   });
 
   const [signing, setSigning] = useState(false);
+  const handleClientLogin = rootStore(({ handleClientLogin }) => handleClientLogin);
   const [progress, setProgress] = useState(0);
   const [stepMessage, setStepMessage] = useState("Initializing...");
   const [currentStep, setCurrentStep] = useState(0);
@@ -90,12 +92,17 @@ const SignUpForm = ({ toggleSignUp }: Props) => {
 
       if (token && site_url) {
         enqueueSnackbar(`🎉 Site created! Welcome to AlphaX, ${data.email}`, { variant: "success" });
+        // Persist auth context for app
         localStorage.setItem("access_token", token);
+        localStorage.setItem("tk", token);
+        localStorage.setItem("user", data.email);
+        // Update in-memory store so protected areas work immediately
+        handleClientLogin(token);
         reset();
 
         updateProgress(100, "Redirecting to your dashboard...", 4);
         setTimeout(() => {
-          navigate("/admin");
+          navigate("/clientLogin");
         }, 1500);
       } else {
         updateProgress(100, "⚠️ Site was not created.");

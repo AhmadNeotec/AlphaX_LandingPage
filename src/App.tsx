@@ -12,6 +12,7 @@ import Module from './components/sections/Module';
 import Industries from './components/sections/Industries';
 import CTABanner from './components/CTABanner';
 import ContactPage from './pages/ContactPage';
+import CallbackPage from './pages/CallbackPage';
 //import ChatGPTInterface from './components/ChatGPT/ChatGPTInterface';
 //import ChatGPTModal from './components/ChatGPT/ChatGPTModal';
 //import { FiMessageCircle } from 'react-icons/fi';
@@ -35,6 +36,7 @@ const PaymentModal = lazy(
   () => import("@components/sections/PaymentModal")
 );
 const ClientDashboard = lazy(() => import("./pages/ClientDashboard/index"));
+const SiteManagement = lazy(() => import("./pages/ClientDashboard/SiteManagement"));
 const SignUpPage = lazy(() => import("./pages/SignUpPage"));
 const PricingPage = lazy(() => import("./pages/PricingPage"));
 const PricinglistPage = lazy(() => import("./pages/PricinglistPage"));
@@ -177,7 +179,7 @@ function App() {
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/clientLogin/chat" element={<ChatPage />} />
             <Route path="/payment-details" element={<PaymentDetailsPage />} />
-            
+            <Route path="/callback" element={<CallbackPage />} />
             {/* Sales Routes */}
             <Route path="/Sales/Sales" element={<Sales />} />
             <Route path="/Sales/Invoicing" element={<Invoicing />} />
@@ -260,6 +262,16 @@ function App() {
             />
             <Route path="/clientLogin/billing-management" element={<BillingManagement />} />
             <Route path="/clientLogin/profile" element={<Profile />} />
+            <Route
+              path="/clientDashboard/site-management"
+              element={
+                isLoggedIn ? (
+                  <SiteManagement />
+                ) : (
+                  <Navigate to="/" replace />
+                )
+              }
+            />
 
             {/* CMS Panel Route */}
             <Route
