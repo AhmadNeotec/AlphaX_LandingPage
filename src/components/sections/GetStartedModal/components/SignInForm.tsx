@@ -132,7 +132,7 @@ const SignInForm = ({ loginSuccess, setLoginSuccess }: Props) => {
   //const OAUTH_REDIRECT_URI = "https://neotechis.com/callback";
   //const OAUTH_AUTH_URL = `https://test.neotec.ai/api/method/frappe.integrations.oauth2.authorize?client_id=${OAUTH_CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(OAUTH_REDIRECT_URI)}&scope=all`;
   
-  const OAUTH_CLIENT_ID = "93kjpi4dm5"; // from your Frappe OAuth Client
+  const OAUTH_CLIENT_ID = "0hvu703krt"; // from your Frappe OAuth Client
   const OAUTH_REDIRECT_URI = "https://neotechis.com/callback";
   const OAUTH_SCOPE = "all";
   const OAUTH_AUTH_URL = `https://test.neotec.ai/api/method/frappe.integrations.oauth2.authorize?client_id=${OAUTH_CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(OAUTH_REDIRECT_URI)}&scope=${encodeURIComponent(OAUTH_SCOPE)}`;

@@ -25,7 +25,7 @@ const CallbackPage = () => {
             grant_type: "authorization_code",
             code: code,
             redirect_uri: "https://neotechis.com/callback",
-            client_id: "93kjpi4dm5", // must match your OAuth Client
+            client_id: "0hvu703krt", // must match your OAuth Client
           }),
         });
 

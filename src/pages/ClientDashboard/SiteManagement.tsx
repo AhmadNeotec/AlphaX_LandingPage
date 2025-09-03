@@ -1,22 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FiPlus, FiGlobe, FiSettings, FiUsers, FiArrowLeft } from 'react-icons/fi';
+import { FiPlus, FiGlobe, FiSettings, FiUsers, FiArrowLeft, FiCheck, FiX } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import { withApiAuthHeaders } from '@api/authHeaders';
-import { getUserSites } from '@api/userSitesApi';
+import { getUserSites, addUserSite, checkSubdomainAvailability, getSiteStatus } from '@api/userSitesApi';
+import DashboardNavbar from './DashboardNavbar';
 
 interface Site {
   id: string;
   name: string;
   domain: string;
-  status: 'active' | 'inactive' | 'pending' | 'suspend';
+  status: 'active' | 'inactive' | 'pending' | 'suspend' | 'installing';
   createdAt: string;
   plan: string;
   plan_name?: string;
   users: number;
   selectedModules: string[]; // Array of selected module names
-  adminPassword?: string; // Admin password for Frappe site
-  dbPassword?: string; // Database password for Frappe site
+  // Removed adminPassword and dbPassword fields
   billingCycle?: string; // Monthly or Yearly billing cycle
   paymentStatus?: string; // Payment status
   invoiceDate?: string; // Invoice date
@@ -47,10 +47,19 @@ const SiteManagement: React.FC = () => {
   const [selectedSite, setSelectedSite] = useState<Site | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   
+  // Success popup state
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+  const [successData, setSuccessData] = useState<{ siteUrl: string; jobId: string; siteStatus?: string } | null>(null);
+  
   // Module fetching logic
   const [modules, setModules] = useState<ModuleData[]>([]);
   const [modulesLoading, setModulesLoading] = useState(true);
   const [modulesError, setModulesError] = useState<string | null>(null);
+
+  // DashboardNavbar state
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const profileDropdownRef = React.useRef<HTMLDivElement>(null);
 
   // Fetch available modules
   useEffect(() => {
@@ -125,6 +134,25 @@ const SiteManagement: React.FC = () => {
               } catch {
                 domain = siteUrl || `site-${idx}`;
               }
+              
+              // Extract modules from subscribe_modules if available
+              const selectedModules: string[] = [];
+              if (userSite?.subscribe_modules && Array.isArray(userSite.subscribe_modules)) {
+                console.log('[SiteManagement] Raw subscribe_modules:', userSite.subscribe_modules);
+                userSite.subscribe_modules.forEach((module: any) => {
+                  console.log('[SiteManagement] Processing module:', module);
+                  if (module.modules && typeof module.modules === 'string') {
+                    // Check if this is a valid module name (not a random string)
+                    if (module.modules.length > 3 && !module.modules.includes('0') && !module.modules.includes('1')) {
+                      selectedModules.push(module.modules);
+                    } else {
+                      console.log('[SiteManagement] Skipping invalid module name:', module.modules);
+                    }
+                  }
+                });
+              }
+              console.log('[SiteManagement] Final selectedModules:', selectedModules);
+              
               return {
                 id: `${parentName}-${idx}`,
                 name: domain,
@@ -133,7 +161,7 @@ const SiteManagement: React.FC = () => {
                 createdAt: '',
                 plan: 'Basic',
                 users: 1,
-                selectedModules: [],
+                selectedModules: selectedModules,
                 siteUrl,
               };
             });
@@ -156,6 +184,25 @@ const SiteManagement: React.FC = () => {
             } catch {
               domain = siteUrl || `site-${idx}`;
             }
+            
+            // Extract modules from subscribe_modules if available
+            const selectedModules: string[] = [];
+            if (obj?.subscribe_modules && Array.isArray(obj.subscribe_modules)) {
+              console.log('[SiteManagement] Raw obj.subscribe_modules:', obj.subscribe_modules);
+              obj.subscribe_modules.forEach((module: any) => {
+                console.log('[SiteManagement] Processing obj module:', module);
+                if (module.modules && typeof module.modules === 'string') {
+                  // Check if this is a valid module name (not a random string)
+                  if (module.modules.length > 3 && !module.modules.includes('0') && !module.modules.includes('1')) {
+                    selectedModules.push(module.modules);
+                  } else {
+                    console.log('[SiteManagement] Skipping invalid obj module name:', module.modules);
+                  }
+                }
+              });
+            }
+            console.log('[SiteManagement] Final obj selectedModules:', selectedModules);
+            
             return {
               id: `${parentName}-${idx}`,
               name: domain,
@@ -164,7 +211,7 @@ const SiteManagement: React.FC = () => {
               createdAt: '',
               plan: 'Basic',
               users: 1,
-              selectedModules: [],
+              selectedModules: selectedModules,
               siteUrl,
             };
           });
@@ -190,13 +237,11 @@ const SiteManagement: React.FC = () => {
       console.log('[SiteManagement] Creating site with data:', siteData);
       
       // Call the Frappe API to create the site
-      const response = await fetch('https://test.neotec.ai/api/method/alphax_erp.utils.create_new_site', {
+      const response = await fetch('https://test.neotec.ai/api/method/alphax_erp.api.site_creation.create_frappe_cloud_site', {
         method: 'POST',
         headers: withApiAuthHeaders(),
         body: JSON.stringify({
-          subdomain: siteData.domain?.replace('.com', ''), // Remove .com if present
-          admin_password: siteData.adminPassword || '12345',
-          db_password: siteData.dbPassword || 'P@ss#1234'
+          subdomain: siteData.domain?.replace('.frappe.cloud', '') // Remove .frappe.cloud if present
         })
       });
 
@@ -208,24 +253,79 @@ const SiteManagement: React.FC = () => {
       console.log('[SiteManagement] Site creation response:', result);
 
       if (result.message && result.message.status === 'success') {
+        // Site created successfully - now add to user sites
+        const siteUrl = result.message.response.message.site;
+        const jobId = result.message.response.message.job;
+        
+        try {
+          // Get current user email from localStorage
+          const userEmail = localStorage.getItem('user') || '';
+          if (userEmail) {
+            console.log('[SiteManagement] Adding user site to database:', { userEmail, siteUrl, selectedModules: siteData.selectedModules });
+            
+            // Ensure we have modules to send - if none selected, send at least one default module
+            const modulesToSend = siteData.selectedModules && siteData.selectedModules.length > 0 
+              ? siteData.selectedModules 
+              : ['Basic']; // Default module if none selected
+            
+            console.log('[SiteManagement] Sending modules:', modulesToSend);
+            console.log('[SiteManagement] Modules type:', typeof modulesToSend, Array.isArray(modulesToSend));
+            console.log('[SiteManagement] Modules length:', modulesToSend.length);
+            
+            try {
+              await addUserSite(userEmail, siteUrl, modulesToSend);
+              console.log('[SiteManagement] User site added successfully');
+            } catch (addSiteError) {
+              console.error('[SiteManagement] Failed to add user site:', addSiteError);
+              // Don't fail the entire operation if adding to user sites fails
+              // The site was still created successfully
+            }
+          }
+        } catch (addSiteError) {
+          console.error('[SiteManagement] Error adding user site to database:', addSiteError);
+          // Don't fail the entire operation if adding to user sites fails
+          // The site was still created successfully
+        }
+
+        // Get site status after successful creation
+        let siteStatus = 'pending';
+        try {
+          console.log('[SiteManagement] Getting site status for:', siteUrl);
+          const statusResult = await getSiteStatus(siteUrl);
+          siteStatus = statusResult.status.toLowerCase();
+          console.log('[SiteManagement] Site status retrieved:', statusResult);
+        } catch (statusError) {
+          console.error('[SiteManagement] Error getting site status:', statusError);
+          // Keep default status if status check fails
+        }
+
+        // Map status to our interface types
+        let mappedStatus: 'active' | 'inactive' | 'pending' | 'suspend' | 'installing' = 'pending';
+        if (siteStatus === 'active' || siteStatus === 'inactive' || siteStatus === 'pending' || siteStatus === 'suspend' || siteStatus === 'installing') {
+          mappedStatus = siteStatus;
+        }
+
         // Site created successfully
         const newSite: Site = {
           id: Date.now().toString(),
           name: siteData.name || '',
           domain: siteData.domain || '',
-          status: 'pending', // Will be updated when site is verified
+          status: mappedStatus,
           createdAt: new Date().toISOString().split('T')[0],
           plan: siteData.plan || 'Basic',
           users: 1,
-          selectedModules: siteData.selectedModules || [],
-          adminPassword: siteData.adminPassword || '12345',
-          dbPassword: siteData.dbPassword || 'P@ss#1234'
+          selectedModules: siteData.selectedModules || []
         };
         setSites([...sites, newSite]);
         setIsCreateModalOpen(false);
         
-        // Show success message with CNAME instructions
-        alert(`Site created successfully!\n\nPlease add a CNAME record for ${siteData.domain} pointing to ${result.message.cname_target}\n\nAfter DNS propagation, verify and activate at: ${result.message.url}`);
+        // Show 3D success popup
+        setShowSuccessPopup(true);
+        setSuccessData({
+          siteUrl: siteUrl,
+          jobId: jobId,
+          siteStatus: mappedStatus
+        });
       } else {
         throw new Error(result.message?.message || 'Site creation failed');
       }
@@ -244,8 +344,31 @@ const SiteManagement: React.FC = () => {
     return matchesSearch && matchesStatus;
   });
 
+  const handleClientLogout = () => {
+    // Clear auth state and force a full reload to home
+    try {
+      localStorage.removeItem('user');
+      localStorage.removeItem('isSuperAdmin');
+      localStorage.setItem('loginSuccess', 'false');
+    } catch {}
+    window.location.replace('/');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#f7f8fa] via-[#f3f4f8] to-[#e9eaf3] dark:from-[#1a1a1f] dark:via-[#23232a] dark:to-[#18181c]">
+      {/* DashboardNavbar */}
+      <DashboardNavbar
+        userEmail={localStorage.getItem('user') || ''}
+        daysLeft={30}
+        isNotificationOpen={isNotificationOpen}
+        setIsNotificationOpen={setIsNotificationOpen}
+        isProfileOpen={isProfileOpen}
+        setIsProfileOpen={setIsProfileOpen}
+        profileDropdownRef={profileDropdownRef}
+        handleClientLogout={handleClientLogout}
+        navigate={navigate}
+      />
+
       {/* Header */}
       <div className="bg-white/70 dark:bg-[#23232a]/80 border-b border-[#e9eaf3] dark:border-[#23232a] shadow-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -394,6 +517,7 @@ const SiteManagement: React.FC = () => {
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                           site.status === 'active' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' :
                           site.status === 'pending' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' :
+                          site.status === 'installing' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' :
                           'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
                         }`}>
                           {site.status.charAt(0).toUpperCase() + site.status.slice(1)}
@@ -429,7 +553,10 @@ const SiteManagement: React.FC = () => {
                           className="px-3 py-1 bg-gradient-to-r from-[#774A67] to-[#8b5cf6] text-white rounded hover:from-[#8b5cf6] hover:to-[#774A67] transition-all duration-200 font-semibold shadow"
                           onClick={e => {
                             e.stopPropagation();
-                            window.open(site.siteUrl || `https://${site.domain}`, '_blank');
+                            // Construct the correct Frappe Cloud URL
+                            const frappeUrl = `https://${site.domain}`;
+                            console.log('[SiteManagement] Opening site URL:', frappeUrl);
+                            window.open(frappeUrl, '_blank');
                           }}
                         >
                           Visit Site
@@ -467,6 +594,21 @@ const SiteManagement: React.FC = () => {
           site={selectedSite}
         />
       )}
+
+      {/* Success Popup Modal */}
+      {showSuccessPopup && successData && (
+        <SuccessPopup
+          isOpen={showSuccessPopup}
+          onClose={() => {
+            setShowSuccessPopup(false);
+            setSuccessData(null);
+            navigate('/clientDashboard/site-management');
+          }}
+          siteUrl={successData.siteUrl}
+          jobId={successData.jobId}
+          siteStatus={successData.siteStatus}
+        />
+      )}
     </div>
   );
 };
@@ -486,21 +628,88 @@ const CreateSiteModal: React.FC<CreateSiteModalProps> = ({ isOpen, onClose, onCr
     name: '',
     domain: '',
     plan: 'Basic',
-    selectedModules: [] as string[],
-    adminPassword: '12345',
-    dbPassword: 'P@ss#1234'
+    selectedModules: [] as string[]
+    // Removed adminPassword and dbPassword
   });
+
+  // Subdomain availability state
+  const [subdomainStatus, setSubdomainStatus] = useState<{
+    checking: boolean;
+    available: boolean | null;
+    message: string;
+  }>({
+    checking: false,
+    available: null,
+    message: ''
+  });
+
+  // Debounced subdomain checking
+  useEffect(() => {
+    if (!formData.domain || formData.domain.length < 3) {
+      setSubdomainStatus({
+        checking: false,
+        available: null,
+        message: ''
+      });
+      return;
+    }
+
+    const timeoutId = setTimeout(async () => {
+      try {
+        setSubdomainStatus(prev => ({ ...prev, checking: true }));
+        
+        const result = await checkSubdomainAvailability(formData.domain);
+        
+        setSubdomainStatus({
+          checking: false,
+          available: result.available,
+          message: result.message
+        });
+      } catch (error: any) {
+        console.error('Error checking subdomain availability:', error);
+        setSubdomainStatus({
+          checking: false,
+          available: false,
+          message: 'Error checking availability'
+        });
+      }
+    }, 500); // 500ms debounce
+
+    return () => clearTimeout(timeoutId);
+  }, [formData.domain]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    console.log('[SiteManagement] Form submitted with data:', formData);
+    console.log('[SiteManagement] Selected modules:', formData.selectedModules);
+    console.log('[SiteManagement] Modules type:', typeof formData.selectedModules, Array.isArray(formData.selectedModules));
+    
+    // Check if subdomain is available before submitting
+    if (subdomainStatus.available === false) {
+      alert('Please choose an available subdomain before creating the site.');
+      return;
+    }
+    
+    if (subdomainStatus.checking) {
+      alert('Please wait while we check subdomain availability.');
+      return;
+    }
+    
     onCreate(formData);
     setFormData({ 
       name: '', 
       domain: '', 
       plan: 'Basic', 
-      selectedModules: [],
-      adminPassword: '12345',
-      dbPassword: 'P@ss#1234'
+      selectedModules: []
+      // Removed adminPassword and dbPassword
+    });
+    
+    // Reset subdomain status
+    setSubdomainStatus({
+      checking: false,
+      available: null,
+      message: ''
     });
   };
 
@@ -527,7 +736,7 @@ const CreateSiteModal: React.FC<CreateSiteModalProps> = ({ isOpen, onClose, onCr
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Site Name
+              Company Name
             </label>
             <input
               type="text"
@@ -535,7 +744,7 @@ const CreateSiteModal: React.FC<CreateSiteModalProps> = ({ isOpen, onClose, onCr
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[#774A67] focus:border-transparent dark:bg-gray-700 dark:text-white"
-              placeholder="Enter site name"
+              placeholder="Enter company name"
             />
           </div>
 
@@ -549,42 +758,43 @@ const CreateSiteModal: React.FC<CreateSiteModalProps> = ({ isOpen, onClose, onCr
                 required
                 value={formData.domain}
                 onChange={(e) => setFormData({ ...formData, domain: e.target.value })}
-                className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-l-lg focus:ring-2 focus:ring-[#774A67] focus:border-transparent dark:bg-gray-700 dark:text-white"
-                placeholder="mysite"
+                className={`flex-1 px-3 py-2 border rounded-l-lg focus:ring-2 focus:ring-[#774A67] focus:border-transparent dark:bg-gray-700 dark:text-white ${
+                  subdomainStatus.available === true 
+                    ? 'border-green-500 bg-green-50 dark:bg-green-900/20' 
+                    : subdomainStatus.available === false 
+                    ? 'border-red-500 bg-red-50 dark:bg-red-900/20'
+                    : 'border-gray-300 dark:border-gray-600'
+                }`}
+                placeholder="mycompany"
               />
               <span className="px-3 py-2 bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-300 border border-l-0 border-gray-300 dark:border-gray-600 rounded-r-lg">
-                .com
+                .frappe.cloud
               </span>
             </div>
-            <p className="text-xs text-gray-500 mt-1">This will create: {formData.domain || 'mysite'}.com</p>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Admin Password
-            </label>
-            <input
-              type="password"
-              required
-              value={formData.adminPassword}
-              onChange={(e) => setFormData({ ...formData, adminPassword: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[#774A67] focus:border-transparent dark:bg-gray-700 dark:text-white"
-              placeholder="Admin password"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Database Password
-            </label>
-            <input
-              type="password"
-              required
-              value={formData.dbPassword}
-              onChange={(e) => setFormData({ ...formData, dbPassword: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[#774A67] focus:border-transparent dark:bg-gray-700 dark:text-white"
-              placeholder="Database password"
-            />
+            
+            {/* Subdomain availability status */}
+            {formData.domain.length > 0 && (
+              <div className="mt-2 flex items-center space-x-2">
+                {subdomainStatus.checking ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
+                    <span className="text-sm text-blue-600 dark:text-blue-400">Checking availability...</span>
+                  </>
+                ) : subdomainStatus.available === true ? (
+                  <>
+                    <FiCheck className="w-4 h-4 text-green-500" />
+                    <span className="text-sm text-green-600 dark:text-green-400">{formData.domain}.frappe.cloud is available</span>
+                  </>
+                ) : subdomainStatus.available === false ? (
+                  <>
+                    <FiX className="w-4 h-4 text-red-500" />
+                    <span className="text-sm text-red-600 dark:text-red-400">{formData.domain}.frappe.cloud is not available</span>
+                  </>
+                ) : null}
+              </div>
+            )}
+            
+            <p className="text-xs text-gray-500 mt-1">This will create: {formData.domain || 'mycompany'}.frappe.cloud</p>
           </div>
 
           <div>
@@ -622,29 +832,36 @@ const CreateSiteModal: React.FC<CreateSiteModalProps> = ({ isOpen, onClose, onCr
                   <p className="text-xs text-gray-500">No modules available</p>
                 </div>
               ) : (
-                modules.map((module) => (
-                  <label key={module.module_name} className="flex items-center space-x-2 py-1">
-                    <input
-                      type="checkbox"
-                      checked={formData.selectedModules.includes(module.module_name)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setFormData({
-                            ...formData,
-                            selectedModules: [...formData.selectedModules, module.module_name]
-                          });
-                        } else {
-                          setFormData({
-                            ...formData,
-                            selectedModules: formData.selectedModules.filter(m => m !== module.module_name)
-                          });
-                        }
-                      }}
-                      className="rounded border-gray-300 text-[#774A67] focus:ring-[#774A67]"
-                    />
-                    <span className="text-sm text-gray-700 dark:text-gray-300">{module.module_name}</span>
-                  </label>
-                ))
+                modules.map((module) => {
+                  console.log('[SiteManagement] Rendering module:', module);
+                  return (
+                    <label key={module.module_name} className="flex items-center space-x-2 py-1">
+                      <input
+                        type="checkbox"
+                        checked={formData.selectedModules.includes(module.module_name)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            const newModules = [...formData.selectedModules, module.module_name];
+                            console.log('[SiteManagement] Adding module:', module.module_name, 'New modules array:', newModules);
+                            setFormData({
+                              ...formData,
+                              selectedModules: newModules
+                            });
+                          } else {
+                            const newModules = formData.selectedModules.filter(m => m !== module.module_name);
+                            console.log('[SiteManagement] Removing module:', module.module_name, 'New modules array:', newModules);
+                            setFormData({
+                              ...formData,
+                              selectedModules: newModules
+                            });
+                          }
+                        }}
+                        className="rounded border-gray-300 text-[#774A67] focus:ring-[#774A67]"
+                      />
+                      <span className="text-sm text-gray-700 dark:text-gray-300">{module.module_name}</span>
+                    </label>
+                  );
+                })
               )}
             </div>
             {formData.selectedModules.length > 0 && (
@@ -664,12 +881,155 @@ const CreateSiteModal: React.FC<CreateSiteModalProps> = ({ isOpen, onClose, onCr
             </button>
             <button
               type="submit"
-              className="flex-1 px-4 py-2 bg-[#774A67] text-white rounded-lg hover:bg-[#8b5cf6] transition-colors"
+              disabled={subdomainStatus.checking || subdomainStatus.available === false}
+              className={`flex-1 px-4 py-2 rounded-lg transition-colors ${
+                subdomainStatus.checking || subdomainStatus.available === false
+                  ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                  : 'bg-[#774A67] text-white hover:bg-[#8b5cf6]'
+              }`}
             >
-              Create Site
+              {subdomainStatus.checking ? 'Checking...' : 'Create Site'}
             </button>
           </div>
         </form>
+      </motion.div>
+    </div>
+  );
+};
+
+// Success Popup Component
+interface SuccessPopupProps {
+  isOpen: boolean;
+  onClose: () => void;
+  siteUrl: string;
+  jobId: string;
+  siteStatus?: string;
+}
+
+const SuccessPopup: React.FC<SuccessPopupProps> = ({ isOpen, onClose, siteUrl, jobId, siteStatus }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.5, rotateY: -90 }}
+        animate={{ opacity: 1, scale: 1, rotateY: 0 }}
+        exit={{ opacity: 0, scale: 0.5, rotateY: 90 }}
+        transition={{ duration: 0.6, type: "spring", stiffness: 100 }}
+        className="bg-gradient-to-br from-green-50 via-white to-blue-50 dark:from-green-900/20 dark:via-[#23232a] dark:to-blue-900/20 rounded-3xl shadow-2xl max-w-md w-full p-8 border-2 border-green-200 dark:border-green-700/50 transform perspective-1000"
+        style={{ transformStyle: 'preserve-3d' }}
+      >
+        {/* 3D Success Icon */}
+        <motion.div
+          initial={{ rotateY: -180, scale: 0 }}
+          animate={{ rotateY: 0, scale: 1 }}
+          transition={{ delay: 0.3, duration: 0.8, type: "spring" }}
+          className="relative w-24 h-24 mx-auto mb-6"
+          style={{ transformStyle: 'preserve-3d' }}
+        >
+          {/* Front face */}
+          <div className="absolute inset-0 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center shadow-2xl transform rotate-y-0">
+            <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          
+          {/* Back face */}
+          <div className="absolute inset-0 bg-gradient-to-br from-green-600 to-green-800 rounded-full transform rotate-y-180" />
+          
+          {/* Left face */}
+          <div className="absolute inset-0 bg-gradient-to-br from-green-500 to-green-700 rounded-full transform rotate-y-90" />
+          
+          {/* Right face */}
+          <div className="absolute inset-0 bg-gradient-to-br from-green-300 to-green-500 rounded-full transform rotate-y-neg-90" />
+        </motion.div>
+
+        {/* Success Message */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5, duration: 0.6 }}
+          className="text-center mb-6"
+        >
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+            Site Created Successfully! 🎉
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">
+            Your new site is being set up and will be ready shortly.
+          </p>
+        </motion.div>
+
+        {/* Site Details */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.7, duration: 0.6 }}
+          className="bg-white/50 dark:bg-gray-800/50 rounded-2xl p-4 mb-6 border border-green-200 dark:border-green-700/50"
+        >
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Site URL:</span>
+              <span className="text-sm font-bold text-green-600 dark:text-green-400 break-all">{siteUrl}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Job ID:</span>
+              <span className="text-sm font-mono text-gray-700 dark:text-gray-300">{jobId}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Status:</span>
+              <span className={`text-sm font-semibold ${
+                siteStatus === 'active' ? 'text-green-600 dark:text-green-400' :
+                siteStatus === 'pending' ? 'text-yellow-600 dark:text-yellow-400' :
+                siteStatus === 'installing' ? 'text-blue-600 dark:text-blue-400' :
+                'text-gray-600 dark:text-gray-400'
+              }`}>
+                {siteStatus ? siteStatus.charAt(0).toUpperCase() + siteStatus.slice(1) : 'Unknown'}
+              </span>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Action Button */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.9, duration: 0.6 }}
+          className="text-center"
+        >
+          <button
+            onClick={onClose}
+            className="px-8 py-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+          >
+            OK
+          </button>
+        </motion.div>
+
+        {/* Floating particles for 3D effect */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          {[...Array(6)].map((_, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, scale: 0, x: Math.random() * 100 - 50, y: Math.random() * 100 - 50 }}
+              animate={{ 
+                opacity: [0, 1, 0], 
+                scale: [0, 1, 0],
+                x: [Math.random() * 100 - 50, Math.random() * 200 - 100],
+                y: [Math.random() * 100 - 50, Math.random() * 200 - 100]
+              }}
+              transition={{ 
+                duration: 3, 
+                repeat: Infinity, 
+                delay: i * 0.5,
+                ease: "easeInOut"
+              }}
+              className="absolute w-2 h-2 bg-green-400 rounded-full"
+              style={{
+                left: `${20 + i * 15}%`,
+                top: `${20 + i * 10}%`
+              }}
+            />
+          ))}
+        </div>
       </motion.div>
     </div>
   );
@@ -761,6 +1121,7 @@ const SiteDetailsModal: React.FC<SiteDetailsModalProps> = ({ isOpen, onClose, si
                   <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${
                     site.status === 'active' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' :
                     site.status === 'pending' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' :
+                    site.status === 'installing' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' :
                     'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
                   }`}>
                     {site.status.charAt(0).toUpperCase() + site.status.slice(1)}
@@ -874,7 +1235,9 @@ const SiteDetailsModal: React.FC<SiteDetailsModalProps> = ({ isOpen, onClose, si
             <button
               onClick={() => {
                 // Add functionality to visit the site
-                window.open(`https://${site.domain}`, '_blank');
+                const frappeUrl = `https://${site.domain}`;
+                console.log('[SiteManagement] Opening site URL from modal:', frappeUrl);
+                window.open(frappeUrl, '_blank');
               }}
               className="px-6 py-3 bg-gradient-to-r from-[#774A67] to-[#8b5cf6] text-white rounded-xl hover:from-[#8b5cf6] hover:to-[#774A67] transition-all duration-300 transform hover:scale-105 hover:shadow-xl font-bold shadow-lg"
             >
